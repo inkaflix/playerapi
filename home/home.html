@@ -1,46 +1,945 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UFNETICS - Home de Streaming TV</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ManGat - Clon (TV)</title>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+  /* ====== RESET & BASE ====== */
+  :root{
+    --bg:#070707;
+    --card:#0f0f10;
+    --accent:#e22b2b;
+    --muted:#9b9b9b;
+    --yellow:#ffd400;
+    --radius:12px;
+    --focus-ring: 3px solid #fff; /* Anillo de enfoque para la TV */
+    --focus-bg-color: rgba(255, 255, 255, 0.1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#fff;
+    font-family: 'Inter', system-ui, Arial;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    line-height:1.2;
+  }
+  /* Estilo general para elementos enfocables */
+  [tabindex="0"]:focus, .focused {
+    outline: none !important;
+    box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px rgba(255, 255, 255, 0.2);
+    transition: box-shadow 0.2s ease-in-out, transform 0.1s ease;
+    transform: scale(1.02);
+    z-index: 100;
+  }
+  /* Quita el focus visual a la barra de navegacion fija cuando hay un modal abierto */
+  .buscador-flotante.activo ~ .bottom-nav a.focused {
+      box-shadow: none !important;
+      transform: none !important;
+  }
+
+  /* ====== HEADER ====== */
+  header.app-header{
+    height:56px;
+    background:#0b0b0b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:sticky;
+    top:0;
+    z-index:50;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+  }
+  .brand{
+    font-weight:800;
+    letter-spacing:1px;
+    font-size:18px;
+    /* Hacer el logo enfocable */
+    cursor:pointer;
+    padding: 0 10px;
+  }
+  .brand i{vertical-align:middle;margin-right:8px}
+
+  /* ====== HERO / TOP SLIDER ====== */
+  .hero {
+    width:100%;
+    padding:12px;
+  }
+  .hero-carousel{
+    position:relative;
+    border-radius:16px;
+    overflow:hidden;
+    background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.6));
+  }
+  /* Hace el slide completo enfocable para seleccionar el contenido destacado */
+  .hero-slide-link { 
+    display: block;
+    position:relative;
+    color: inherit;
+    text-decoration: none;
+  }
+  .hero-slide-link img{
+    width:100%;
+    height:240px;
+    object-fit:cover;
+    display:block;
+    filter:brightness(0.75);
+  }
+  .hero-slide-link:focus, .hero-slide-link.focused {
+    transform: none; /* Desactivar scale en el slide del héroe */
+    box-shadow: 0 0 0 6px var(--accent) !important;
+  }
+
+  .hero-slide{
+    display:none;
+  }
+  .hero-slide.active{display:block}
+
+  .hero-overlay{
+    position:absolute;
+    left:18px;
+    bottom:18px;
+    color:#fff;
+    right:18px;
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+  }
+  .hero-meta{
+    background:linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25));
+    padding:10px 14px;
+    border-radius:8px;
+    width:calc(100% - 40px);
+  }
+  .hero-meta .label{
+    display:inline-block;
+    background:var(--accent);
+    color:#fff;
+    padding:5px 8px;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .hero-meta h3{margin:0;font-size:18px}
+  .hero-meta p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+  .hero-dots{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    padding:10px 0;
+  }
+  .hero-dots button{
+    width:12px;height:6px;border-radius:6px;border:0;background:rgba(255,255,255,0.12);
+    cursor:pointer;
+    /* Hacer los puntos enfocables */
+    padding:0;
+  }
+  .hero-dots button.active{background:#fff;width:24px;border-radius:6px}
+
+  /* ====== SECCIONES ====== */
+  main{padding:14px}
+  .section{
+    margin:12px 0 22px;
+  }
+  .section-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .accent-line{
+    width:4px;height:22px;background:var(--accent);border-radius:6px;
+  }
+  .section-title{
+    font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;
+  }
+  .section-actions{
+    margin-left:auto;display:flex;align-items:center;gap:8px;
+  }
+  .btn-small{
+    background:var(--accent);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;border:0;cursor:pointer;
+    text-decoration:none;
+  }
+  .nav-circle{
+    width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0b0b0b;
+  }
+
+  /* carousel horizontal (cards) */
+  .carousel-wrap{position:relative}
+  .carousel{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:8px 2px;
+    scroll-behavior:smooth;
+  }
+  .carousel::-webkit-scrollbar{height:8px}
+  .carousel::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:8px}
+  .card{
+    min-width:140px;
+    max-width:140px;
+    background:var(--card);
+    border-radius:12px;
+    overflow:hidden;
+    text-decoration:none;
+    color:inherit;
+    position:relative;
+    box-shadow:0 6px 18px rgba(0,0,0,0.6);
+    /* Para que se vea bien el focus */
+    display:block;
+  }
+  .card img{
+    width:100%;
+    height:170px;
+    object-fit:cover;
+    display:block;
+  }
+  .card .card-body{
+    padding:8px;
+    font-size:13px;
+  }
+  .card .title{
+    display:block;
+    font-weight:700;
+    font-size:13px;
+    line-height:1.1;
+    height:34px;
+    overflow:hidden;
+  }
+  .card .meta{color:var(--muted);font-size:12px;margin-top:6px}
+
+  /* rating badge */
+  .badge-rating{
+    position:absolute;
+    right:8px;top:8px;
+    background:rgba(0,0,0,0.6);
+    padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.04);
+    display:flex;align-items:center;gap:6px;
+  }
+  .badge-rating i{color:var(--yellow);}
+
+  /* small star icon for some cards corner */
+  .corner-star{
+    position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.6);padding:6px;border-radius:8px;
+  }
+
+  /* ====== BOTTOM NAV (floating) ====== */
+  .bottom-nav{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:12px;
+    width:92%;
+    max-width:920px;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:center;
+    z-index:80;
+    /* Quitar pointer-events:none para poder enfocar */
+  }
+  .bottom-nav a{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;background:rgba(255,255,255,0.04);
+    color:#fff;text-decoration:none;font-weight:700;font-size:14px;
+    /* Ajuste para el focus */
+    transition: all 0.2s ease-in-out;
+  }
+  .icon-btn{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#0e0e0e;border:1px solid rgba(255,255,255,0.03)}
+
+  /* ====== BUSCADOR FLOTANTE ====== */
+  .buscador-flotante{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:150;
+  }
+  .buscador-flotante.activo{display:flex}
+  .buscador-card{
+    width:94%;max-width:720px;background:#0c0c0c;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+  }
+  .search-row{display:flex;gap:8px}
+  .search-row input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff;font-size:15px}
+  .search-row button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+  .search-results{margin-top:12px;display:grid;grid-template-columns:1fr;gap:8px;max-height:360px;overflow:auto}
+  .result-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);text-decoration:none;color:inherit}
+  .result-item img{width:52px;height:72px;object-fit:cover;border-radius:6px}
+  .no-result{color:var(--accent);text-align:center;padding:12px}
+  /* Estilo de enfoque para resultados de búsqueda */
+  .result-item:focus, .result-item.focused {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px var(--accent) !important;
+    transform: scale(1.01);
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media(min-width:800px){
+    .hero-slide-link img{height:420px}
+    .card{min-width:170px;max-width:170px}
+    .card img{height:220px}
+  }
+</style>
 </head>
-<body>
-    
-    <header class="main-header">
-        <div class="logo">UFNETICS</div> 
-        <nav class="top-nav">
-            <a href="#" class="nav-link active">Inicio</a>
-            <a href="#" class="nav-link">Películas</a>
-            <a href="#" class="nav-link">Series</a>
-            <a href="#" class="nav-link">Mi Lista</a>
-        </nav>
-        <div class="user-actions">
-            <span class="search-icon">🔍</span>
-            <span class="profile-icon">👤</span>
+<body data-focus-group="header">
+
+  <header class="app-header">
+    <div class="brand" tabindex="0" data-focus-group="nav-header"><i data-lucide="monitor"></i> MANGAT</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-carousel" id="heroCarousel">
+      </div>
+
+    <div class="hero-dots" id="heroDots" data-focus-group="dots"></div>
+  </section>
+
+  <main>
+    <section class="section" data-section-id="ultimosAportes">
+      <div class="section-header">
+        <div class="accent-line"></div>
+        <div class="section-title">⭐ MANGAS Y MANHWAS RECIENTE ⭐</div>
+        <div class="section-actions" data-focus-group="ultimosAportes-nav">
+          <a href="./pagues/pague_mangas_y_manhwas_reciente/pague_1.html" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="ultimosAportes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="ultimosAportes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
         </div>
-    </header>
+      </div>
 
-    <main class="main-content-wrapper">
-        <div class="hero-banner">
-            <div class="hero-info">
-                <h1 class="hero-title">¡UFNETICS Presenta! Superman: El Legado</h1>
-                <div class="subtitle">Continuar viendo la última temporada... Episodio 4</div>
-                
-                <div class="hero-buttons">
-                    <button class="play-button">▶ Continuar Viendo</button>
-                    <button class="info-button">ℹ Detalles y Episodios</button>
-                </div>
-            </div>
+      <div class="carousel-wrap">
+        <div class="carousel" id="ultimosAportes" data-focus-group="ultimosAportes-carousel"></div>
+      </div>
+    </section>
+
+    <section class="section" data-section-id="seriesRecientes">
+      <div class="section-header">
+        <div class="accent-line"></div>
+        <div class="section-title">⭐ COMICS ⭐</div>
+        <div class="section-actions" data-focus-group="seriesRecientes-nav">
+          <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="seriesRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="seriesRecientes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
         </div>
+      </div>
 
-        <div class="content-container" id="content-container">
-            </div>
-    </main>
+      <div class="carousel-wrap">
+        <div class="carousel" id="seriesRecientes" data-focus-group="seriesRecientes-carousel"></div>
+      </div>
+    </section>
 
+    <section class="section" data-section-id="animesRecientes">
+      <div class="section-header">
+        <div class="accent-line"></div>
+        <div class="section-title">⭐ ANIME RECIENTE ⭐</div>
+        <div class="section-actions" data-focus-group="animesRecientes-nav">
+          <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="animesRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="animesRecientes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
+        </div>
+      </div>
+
+      <div class="carousel-wrap">
+        <div class="carousel" id="animesRecientes" data-focus-group="animesRecientes-carousel"></div>
+      </div>
+    </section>
+
+    <section class="section" data-section-id="pelisRecientes">
+      <div class="section-header">
+        <div class="accent-line"></div>
+        <div class="section-title">⭐ LOS MEJOS H RECOMENDADOS ⭐</div>
+        <div class="section-actions" data-focus-group="pelisRecientes-nav">
+          <a href="./pagues/pagues_mangas_h/pague_1.html" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="pelisRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="pelisRecientes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
+        </div>
+      </div>
+
+      <div class="carousel-wrap">
+        <div class="carousel" id="pelisRecientes" data-focus-group="pelisRecientes-carousel"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="bottom-nav" aria-hidden="false" data-focus-group="bottom-nav">
+    <a href="#" class="icon-btn" title="Inicio" tabindex="0"><i data-lucide="home"></i></a>
+    <a href="#" class="icon-btn" title="Animes" tabindex="0"><i data-lucide="monitor"></i></a>
+    <a href="#" class="icon-btn" title="Series" tabindex="0"><i data-lucide="film"></i></a>
+    <a href="#" id="openSearch" class="icon-btn" title="Buscar" tabindex="0"><i data-lucide="search"></i></a>
+    <a href="#" class="icon-btn" title="Perfil" tabindex="0"><i data-lucide="user"></i></a>
+  </div>
+
+  <div class="buscador-flotante" id="searchModal" aria-hidden="true" data-focus-group="search-modal">
+    <div class="buscador-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <strong>Buscar</strong>
+        <button id="closeSearch" style="background:transparent;border:0;color:var(--muted);cursor:pointer" tabindex="0">Cerrar ✖</button>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" placeholder="Busca por título, ejemplo: Naruto, Disney..." tabindex="0" />
+        <button id="searchClear" tabindex="0">Borrar</button>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+<script>
+/* ==========================
+   DATOS (tu script original)
+   ========================== */
+const data = { 
+  animesRecientes: [ //ANIME RECIENTE
+    { titulo: "Título Anime 1", imagen: "https://via.placeholder.com/140x170?text=Anime+1", url: "#" },
+    { titulo: "Título Anime 2", imagen: "https://via.placeholder.com/140x170?text=Anime+2", url: "#" },
+    { titulo: "Título Anime 3", imagen: "https://via.placeholder.com/140x170?text=Anime+3", url: "#" },
+    { titulo: "Título Anime 4", imagen: "https://via.placeholder.com/140x170?text=Anime+4", url: "#" }
+  ],
+  animesLatinos: [ //No usado en el HTML, pero lo dejamos
+    { titulo: "Título Latino 1", imagen: "https://via.placeholder.com/140x170?text=Latino+1", url: "./mangas/caida-del-espacio.html", vistas: "Cap.1", fecha:"2024"  },
+    { titulo: "Título Latino 2", imagen: "https://via.placeholder.com/140x170?text=Latino+2", url: "#" , fecha:"2023"},
+    { titulo: "Título Latino 3", imagen: "https://via.placeholder.com/140x170?text=Latino+3", url: "#", fecha:"2023"},
+    { titulo: "Título Latino 4", imagen: "https://via.placeholder.com/140x170?text=Latino+4", url: "#" , fecha:"2024"}
+  ],
+  loMasVisto: [// COMICS
+    { titulo: "Título Comic 1", imagen: "https://via.placeholder.com/140x170?text=Comic+1", url: "#", vistas: "1", fecha:"Nov. 15, 2023" },
+    { titulo: "Título Comic 2", imagen: "https://via.placeholder.com/140x170?text=Comic+2", url: "#", vistas: "2", fecha:"Nov. 15, 2023" },
+    { titulo: "Título Comic 3", imagen: "https://via.placeholder.com/140x170?text=Comic+3", url: "#", vistas: "3", fecha:"Nov. 27, 2023" },
+    { titulo: "Título Comic 4", imagen: "https://via.placeholder.com/140x170?text=Comic+4", url: "#", vistas: "3", fecha:"2025"}
+  ],
+  ultimosAportes:[ // MANGAS Y MANHWAS RECIENTE
+    { titulo:"Título Manga 1: Ejemplo Largo para TV", imagen:"https://via.placeholder.com/140x170?text=Manga+1", url:"#", rating:8.9, fecha:"2025" },
+    { titulo:"Título Manga 2", imagen:"https://via.placeholder.com/140x170?text=Manga+2", url:"#", rating:5.6, fecha:"Nov. 15, 2023" },
+    { titulo:"Título Manga 3", imagen:"https://via.placeholder.com/140x170?text=Manga+3", url:"#", rating:6.2, fecha:"Nov. 27, 2023" },
+    { titulo:"Título Manga 4", imagen:"https://via.placeholder.com/140x170?text=Manga+4", url:"#", rating:8.0, fecha:"2024" },
+    { titulo:"Título Manga 5", imagen:"https://via.placeholder.com/140x170?text=Manga+5", url:"#", rating:7.5, fecha:"2025" }
+  ],//Animesh
+  pelisRecientes:[ // H RECOMENDADOS
+    { titulo:"Mitarashi Kousei", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/mitarashi/Mitarashi_Kousei.html", rating:8.9, fecha:"Finalizado" },
+    { titulo:"Execio (Yukimaru )", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/yukimaru/Execion_yukimaru.html", rating:5.6, fecha:"Finalizado" },
+    { titulo:"ToWer", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/tower/tower.html", rating:6.2, fecha:"Finalizado" },
+    { titulo:"ToWer 2", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/herem/herem.html", rating:6.2, fecha:"Finalizado" }
+  
+  ]
+};
+
+/* ==========================
+   RENDER HERO 
+   ========================== */
+const heroItems = [
+  {
+    titulo: "Caida del espacio",
+    imagen: "https://static.qqtoon.com/common/e0eda9a1803d40d4816b6930047c0b7d1742291180104.jpg?x-oss-process=image/resize,w_800,m_lfit/quality,q_75/format,jpg",
+    tipo: "Manhwua",
+    fecha: "2025",
+    url: "#slide1"
+  },
+  {
+    titulo: "Otra Película Destacada Más Larga de la Cuenta",
+    imagen: "https://raw.githubusercontent.com/inkaflix/API/main/imagenotfound.jpg",
+    tipo: "PELÍCULA",
+    fecha: "2023",
+    url: "#slide2"
+  }
+];
+
+const heroCarousel = document.getElementById('heroCarousel');
+const heroDots = document.getElementById('heroDots');
+let heroIndex = 0;
+
+function buildHero(){
+  heroCarousel.innerHTML = '';
+  heroDots.innerHTML = '';
+  heroItems.forEach((h, idx) => {
+    const slide = document.createElement('div');
+    slide.className = 'hero-slide' + (idx===0 ? ' active' : '');
     
+    // Hacemos el slide completo enfocable con tabindex="0"
+    slide.innerHTML = `
+      <a href="${h.url}" class="hero-slide-link" tabindex="${idx===0 ? '0' : '-1'}" data-focus-group="hero-slide">
+        <img src="${h.imagen}" alt="${escapeHtml(h.titulo)}" loading="lazy">
+        <div class="hero-overlay">
+          <div class="hero-meta">
+            <div class="label">${h.tipo}</div>
+            <h3>${h.titulo}</h3>
+            <p>${h.fecha}</p>
+          </div>
+        </div>
+      </a>
+    `;
+    heroCarousel.appendChild(slide);
 
-    <script src="app.js"></script>
+    // Hacemos los puntos enfocables
+    const dot = document.createElement('button');
+    dot.className = idx===0 ? 'active' : '';
+    dot.setAttribute('tabindex', '-1'); // Se maneja el focus en el script de TV
+    dot.setAttribute('data-dot-index', idx);
+    dot.addEventListener('click', ()=> { goToHero(idx); });
+    heroDots.appendChild(dot);
+  });
+}
+
+function goToHero(i){
+  const slides = heroCarousel.querySelectorAll('.hero-slide');
+  const slideLinks = heroCarousel.querySelectorAll('.hero-slide-link');
+  slides.forEach(s=>s.classList.remove('active'));
+  slides[i].classList.add('active');
+  
+  // Actualizar tabindex para el enfoque del slide del héroe
+  slideLinks.forEach((link, idx) => link.setAttribute('tabindex', idx === i ? '0' : '-1'));
+  
+  [...heroDots.children].forEach((d,idx)=> d.classList.toggle('active', idx===i));
+  heroIndex = i;
+}
+
+function nextHero(){
+  heroIndex = (heroIndex + 1) % heroItems.length;
+  goToHero(heroIndex);
+}
+
+buildHero();
+
+// Autoplay
+let heroAuto = setInterval(nextHero, 5000);
+heroCarousel.addEventListener('mouseenter', ()=> clearInterval(heroAuto));
+heroCarousel.addEventListener('mouseleave', ()=> heroAuto = setInterval(nextHero, 5000));
+
+/* ==========================
+   RENDER CARDS
+   ========================== */
+function makeCard(item){
+  const a = document.createElement('a');
+  a.className = 'card';
+  a.href = item.url || '#';
+  // Añadimos tabindex="0" para que sea enfocable por el control remoto
+  a.setAttribute('tabindex', '0'); 
+  a.innerHTML = `
+    ${item.rating ? `<div class="badge-rating"><i data-lucide="star"></i> ${item.rating}</div>` : ''}
+    ${item.vistas ? `<div class="corner-star">${item.vistas}</div>` : ''}
+    <img src="${item.imagen}" alt="${escapeHtml(item.titulo)}" loading="lazy" />
+    <div class="card-body">
+      <span class="title">${item.titulo}</span>
+      <div class="meta">${item.fecha || ''}</div>
+    </div>
+  `;
+  return a;
+}
+
+function renderList(list, selector){
+  const cont = document.getElementById(selector);
+  cont.innerHTML = '';
+  list.forEach(it => cont.appendChild(makeCard(it)));
+}
+
+/* Render inicial con tu JSON */
+renderList(data.ultimosAportes, 'ultimosAportes');
+renderList(data.loMasVisto, 'seriesRecientes');
+renderList(data.animesRecientes, 'animesRecientes');
+renderList(data.pelisRecientes, 'pelisRecientes');
+
+/* ==========================
+   NAV CIRCLES: prev/next scroll
+   ========================== */
+document.querySelectorAll('.nav-circle').forEach(btn=>{
+  btn.addEventListener('click', (e)=>{
+    const target = btn.getAttribute('data-target');
+    const dir = btn.getAttribute('data-dir');
+    const cont = document.getElementById(target);
+    if(!cont) return;
+    // La TV suele tener un desplazamiento más grande
+    const shift = dir === 'next' ? cont.clientWidth * 0.8 : -cont.clientWidth * 0.8; 
+    cont.scrollBy({left: shift, behavior:'smooth'});
+  });
+});
+
+/* ==========================
+   BUSCADOR (en tiempo real)
+   ========================== */
+const openSearch = document.getElementById('openSearch');
+const searchModal = document.getElementById('searchModal');
+const closeSearch = document.getElementById('closeSearch');
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+const searchClear = document.getElementById('searchClear');
+
+openSearch.addEventListener('click', (e)=>{
+  e.preventDefault();
+  searchModal.classList.add('activo');
+  searchModal.style.display = 'flex';
+  searchModal.setAttribute('aria-hidden','false');
+  searchInput.focus();
+  // Al abrir el modal, inicializar el enfoque
+  setInitialFocus(searchModal);
+});
+
+closeSearch.addEventListener('click', ()=>{
+  closeModal();
+});
+
+searchClear.addEventListener('click', ()=>{
+  searchInput.value = '';
+  searchResults.innerHTML = '';
+  searchInput.focus();
+});
+
+function closeModal(){
+  searchModal.style.display = 'none';
+  searchModal.setAttribute('aria-hidden','true');
+  searchInput.value = '';
+  searchResults.innerHTML = '';
+  // Restaurar el foco al botón de búsqueda en el nav inferior
+  openSearch.focus();
+}
+
+/* Real-time search over all lists */
+searchInput.addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  searchResults.innerHTML = '';
+  if(!q) return;
+  
+  const all = [
+  ...data.animesRecientes,
+  ...data.animesLatinos,
+  ...data.loMasVisto,
+  ...data.ultimosAportes,
+  ...data.pelisRecientes,
+  ...(window.jsonExtra || [])
+];
+  const results = all.filter(item => item.titulo.toLowerCase().includes(q));
+  if(results.length === 0){
+    searchResults.innerHTML = `<div class="no-result">No se encontraron resultados.</div>`;
+    return;
+  }
+  
+  results.forEach(r=>{
+    const a = document.createElement('a');
+    a.className = 'result-item';
+    a.href = r.url || '#';
+    // Hacemos los resultados enfocables
+    a.setAttribute('tabindex', '0'); 
+    a.innerHTML = `<img src="${r.imagen}"><div><strong style="font-size:14px">${r.titulo}</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">${r.fecha || ''}</div></div>`;
+    searchResults.appendChild(a);
+  });
+});
+
+window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+/* Utility: escape html (small) */
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ==========================
+   LÓGICA DE NAVEGACIÓN D-PAD PARA ANDROID TV
+   ========================== */
+
+let currentFocus = null;
+
+// Obtiene todos los elementos enfocables en el DOM
+function getFocusableElements(container = document) {
+  return Array.from(container.querySelectorAll('[tabindex="0"], a[href], button, input, .card'))
+    .filter(el => {
+      // Filtrar elementos con tabindex=0 que estén visibles y no deshabilitados
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' && !el.disabled && el.offsetParent !== null;
+    })
+    .map(el => {
+      // Eliminar duplicados si un elemento cumple con múltiples selectores
+      if(el.classList.contains('card')) return el.closest('.card');
+      return el;
+    })
+    .filter((v, i, a) => a.indexOf(v) === i); // Filtrar duplicados
+}
+
+function focusElement(el) {
+  if (currentFocus) {
+    currentFocus.classList.remove('focused');
+  }
+  if (el) {
+    el.focus(); // El focus nativo es importante para los inputs y el scroll
+    el.classList.add('focused');
+    currentFocus = el;
+
+    // SCROLL HORIZONTAL para carousels (filas de tarjetas)
+    const carouselContainer = el.closest('.carousel');
+    if (carouselContainer) {
+        const elRect = el.getBoundingClientRect();
+        const containerRect = carouselContainer.getBoundingClientRect();
+        
+        // Comprobar si el elemento está fuera del contenedor visible horizontalmente
+        if (elRect.left < containerRect.left) {
+            carouselContainer.scrollBy({ left: elRect.left - containerRect.left - 10, behavior: 'smooth' });
+        } else if (elRect.right > containerRect.right) {
+            carouselContainer.scrollBy({ left: elRect.right - containerRect.right + 10, behavior: 'smooth' });
+        }
+    }
+  }
+}
+
+function findNextFocus(direction, focusables) {
+  if (!currentFocus) return focusables[0];
+
+  const currentRect = currentFocus.getBoundingClientRect();
+  let next = null;
+  let minDistance = Infinity;
+  let currentFocusGroup = currentFocus.getAttribute('data-focus-group');
+  if (!currentFocusGroup) {
+      currentFocusGroup = currentFocus.closest('[data-focus-group]') ? currentFocus.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
+  }
+
+  // Si estamos en un carousel, el enfoque solo debe moverse horizontalmente DENTRO de ese carousel.
+  const isCarousel = currentFocus.closest('.carousel');
+
+  focusables.forEach(el => {
+    if (el === currentFocus) return;
+
+    const rect = el.getBoundingClientRect();
+    const isSameRow = (rect.top >= currentRect.top - 10 && rect.bottom <= currentRect.bottom + 10) ||
+                      (currentRect.top >= rect.top - 10 && currentRect.bottom <= rect.bottom + 10);
+    const isSameColumn = (rect.left >= currentRect.left - 10 && rect.right <= currentRect.right + 10) ||
+                         (currentRect.left >= rect.left - 10 && currentRect.right <= rect.right + 10);
+
+    let isCandidate = false;
+
+    // Lógica para saltar entre grupos de enfoque si no se encuentra un elemento contiguo
+    let elFocusGroup = el.getAttribute('data-focus-group');
+    if (!elFocusGroup) {
+        elFocusGroup = el.closest('[data-focus-group]') ? el.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
+    }
+    const isDifferentGroup = currentFocusGroup !== elFocusGroup;
+
+    // Priorizar movimiento dentro del mismo grupo
+    let priorityFactor = isDifferentGroup ? 1000 : 1; 
+
+    switch (direction) {
+      case 'left':
+        if (rect.right < currentRect.left - 5 && isSameRow) {
+          isCandidate = true;
+        } else if (!isCarousel && rect.right < currentRect.left && isDifferentGroup) {
+            isCandidate = true;
+        }
+        break;
+      case 'right':
+        if (rect.left > currentRect.right + 5 && isSameRow) {
+          isCandidate = true;
+        } else if (!isCarousel && rect.left > currentRect.right && isDifferentGroup) {
+            isCandidate = true;
+        }
+        break;
+      case 'up':
+        if (rect.bottom < currentRect.top - 5 && isSameColumn) {
+          isCandidate = true;
+        } else if (!isCarousel && rect.bottom < currentRect.top && isDifferentGroup) {
+            isCandidate = true;
+        }
+        break;
+      case 'down':
+        if (rect.top > currentRect.bottom + 5 && isSameColumn) {
+          isCandidate = true;
+        } else if (!isCarousel && rect.top > currentRect.bottom && isDifferentGroup) {
+            isCandidate = true;
+        }
+        break;
+    }
+
+    if (isCandidate) {
+      const distance = Math.hypot(rect.left - currentRect.left, rect.top - currentRect.top) * priorityFactor;
+      if (distance < minDistance) {
+        minDistance = distance;
+        next = el;
+      }
+    }
+  });
+
+  // Fallback: Si no se encuentra un candidato en la misma fila/columna, 
+  // buscamos el más cercano verticalmente u horizontalmente
+  if (!next && !isCarousel) { 
+      let minGlobalDistance = Infinity;
+      focusables.forEach(el => {
+          if (el === currentFocus) return;
+          const rect = el.getBoundingClientRect();
+          let distance = 0;
+          let isVertical = Math.abs(rect.left - currentRect.left) < 50;
+          let isHorizontal = Math.abs(rect.top - currentRect.top) < 50;
+
+          switch(direction) {
+            case 'left':
+              if (rect.right < currentRect.left) { distance = Math.hypot(currentRect.left - rect.right, currentRect.y - rect.y); } else { distance = Infinity; }
+              break;
+            case 'right':
+              if (rect.left > currentRect.right) { distance = Math.hypot(rect.left - currentRect.right, currentRect.y - rect.y); } else { distance = Infinity; }
+              break;
+            case 'up':
+              if (rect.bottom < currentRect.top) { distance = Math.hypot(currentRect.top - rect.bottom, currentRect.x - rect.x); } else { distance = Infinity; }
+              break;
+            case 'down':
+              if (rect.top > currentRect.bottom) { distance = Math.hypot(rect.top - currentRect.bottom, currentRect.x - rect.x); } else { distance = Infinity; }
+              break;
+          }
+
+          if (distance < minGlobalDistance) {
+            minGlobalDistance = distance;
+            next = el;
+          }
+      });
+  }
+
+
+  return next;
+}
+
+// Inicializar el enfoque
+function setInitialFocus(container = document.body) {
+    let focusables = getFocusableElements(container);
+    if (focusables.length > 0) {
+        focusElement(focusables[0]);
+    }
+}
+
+
+window.addEventListener('load', () => {
+    // Inicializar el enfoque al cargar la página
+    setInitialFocus();
+    
+    // Si el primer elemento es un botón de punto del hero (no deseado), cambiar al slide del hero
+    const firstFocusable = getFocusableElements()[0];
+    if(firstFocusable && firstFocusable.closest('.hero-dots')) {
+        const heroSlideLink = document.querySelector('.hero-slide.active .hero-slide-link');
+        if(heroSlideLink) {
+            focusElement(heroSlideLink);
+        }
+    }
+});
+
+
+// Manejar las teclas del D-Pad
+window.addEventListener('keydown', (e) => {
+  // Solo se aplica la lógica de navegación si no estamos en un input de texto
+  if (currentFocus && currentFocus.tagName === 'INPUT' && !searchModal.classList.contains('activo')) {
+      return; 
+  }
+
+  // Si el modal de búsqueda está abierto
+  if (searchModal.classList.contains('activo')) {
+    const focusablesInModal = getFocusableElements(searchModal);
+    let nextFocus = null;
+
+    if (e.key === 'Escape') {
+      closeModal();
+      return;
+    }
+    
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        nextFocus = findNextFocus('up', focusablesInModal);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        nextFocus = findNextFocus('down', focusablesInModal);
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        nextFocus = findNextFocus('left', focusablesInModal);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        nextFocus = findNextFocus('right', focusablesInModal);
+        break;
+      case 'Enter': // La tecla Enter selecciona el elemento
+        e.preventDefault();
+        if(currentFocus && currentFocus.href) {
+            window.location.href = currentFocus.href;
+        } else if (currentFocus && currentFocus.click) {
+            currentFocus.click();
+        }
+        return;
+    }
+
+    if (nextFocus) {
+      focusElement(nextFocus);
+    }
+    return;
+  }
+  
+  // Si NO estamos en el modal de búsqueda, navegamos por el cuerpo principal
+  const focusables = getFocusableElements();
+  let nextFocus = null;
+
+  switch (e.key) {
+    case 'ArrowUp':
+      e.preventDefault();
+      nextFocus = findNextFocus('up', focusables);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      nextFocus = findNextFocus('down', focusables);
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      nextFocus = findNextFocus('left', focusables);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      nextFocus = findNextFocus('right', focusables);
+      break;
+    case 'Enter':
+    case 'NumpadEnter': // Tecla de selección/OK en el control remoto
+      e.preventDefault();
+      if(currentFocus) {
+        if(currentFocus.href) {
+            window.location.href = currentFocus.href;
+        } else if (currentFocus.click) {
+            currentFocus.click();
+        }
+      }
+      return;
+    case 'Backspace': // Tecla de retroceso, puede cerrar el buscador o volver a la página anterior
+      // Si el buscador está abierto, lo cierra (ya manejado arriba)
+      // Si no, puede usarse para simular 'Back' en la TV (volver a la página anterior)
+      // Esto es algo que el WebView de Android TV maneja nativamente, pero se puede añadir
+      // e.preventDefault();
+      // window.history.back(); 
+      break;
+  }
+
+  if (nextFocus) {
+    focusElement(nextFocus);
+  }
+});
+
+
+/* Activate lucide icons */
+document.addEventListener('DOMContentLoaded', ()=> lucide.createIcons());
+
+/* ====== CARGAR 5 JSON EXTERNOS POR URL ====== */
+
+async function cargarJSON(url){
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Error al cargar JSON:", url, error);
+    return []; // Devolver array vacío para no romper la app
+  }
+}
+
+async function cargarTodos(){
+  // He comentado tus URLs ya que no puedo acceder a ellas; si funcionan, descoméntalas.
+  // const j1 = await cargarJSON("./json1.json"); 
+  // const j2 = await cargarJSON("./jsons/manga2.json");
+  // const j3 = await cargarJSON("./jsons/comics.json");
+
+  // window.jsonExtra = [...j1, ...j2, ...j3];
+  window.jsonExtra = [];
+}
+
+cargarTodos();
+</script>
+
 </body>
 </html>
