@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirección Automática Segura</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define la animación de la barra de progreso */
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .progress-bar {
+            animation: progress 3s linear forwards; /* 3 segundos de duración */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen p-4 font-sans">
+
+    <!-- Contenedor Principal (Tarjeta de Redirección) -->
+    <div id="redirect-card" class="bg-white p-8 sm:p-10 rounded-xl shadow-2xl w-full max-w-lg text-center border-b-8 border-cyan-500 transition-all duration-300 transform hover:scale-[1.01]">
+        
+        <!-- Estado de Carga y Redirección -->
+        <div id="loading-content">
+            <svg class="mx-auto h-12 w-12 text-cyan-500 animate-pulse" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            
+            <h1 class="text-3xl font-extrabold text-gray-900 mt-4 mb-2">¡Redirección Segura!</h1>
+            
+            <p class="text-gray-600 text-lg mb-4">
+                Redirigiendo código: <span id="display-code" class="font-mono bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-semibold">Cargando...</span>
+            </p>
+
+            <p class="text-sm text-gray-500 mb-6">
+                Te llevaremos a tu destino automáticamente en <span id="countdown" class="font-bold text-cyan-600 text-xl">3</span> segundos.
+            </p>
+
+            <!-- Barra de Progreso -->
+            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div id="progress" class="progress-bar bg-cyan-500 h-3 rounded-full shadow-lg" style="width: 0%;"></div>
+            </div>
+            
+            <!-- Botón de Redirección Manual -->
+            <button id="manual-redirect-btn" 
+                    class="mt-8 w-full px-4 py-3 bg-cyan-600 text-white font-bold rounded-xl hover:bg-cyan-700 transition-colors duration-200 shadow-xl shadow-cyan-500/50 disabled:opacity-50 disabled:shadow-none"
+                    disabled>
+                Redirigir Ahora Mismo
+            </button>
+        </div>
+
+        <!-- Contenido de Error -->
+        <div id="error-content" class="hidden">
+            <svg class="mx-auto h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <h1 class="text-3xl font-extrabold text-red-700 mt-4 mb-2">Código Inválido o Error</h1>
+            <p id="error-message" class="text-gray-700 text-lg mb-6">El código de redirección proporcionado no es válido o no se pudo cargar la lista de enlaces.</p>
+            <a href="/" class="inline-block px-6 py-2 border border-red-500 text-red-500 font-semibold rounded-lg hover:bg-red-50 transition-colors duration-200">
+                Volver al Inicio
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        // Configuración
+        const REDIRECT_DELAY_SECONDS = 3;
+        const REDIRECT_MAP_FILE = '/embed.json'; // Nombre del archivo JSON que cargaremos.
+        
+        // Elementos del DOM
+        const displayCode = document.getElementById('display-code');
+        const countdownElement = document.getElementById('countdown');
+        const loadingContent = document.getElementById('loading-content');
+        const errorContent = document.getElementById('error-content');
+        const manualRedirectBtn = document.getElementById('manual-redirect-btn');
+        const redirectCard = document.getElementById('redirect-card');
+
+        /**
+         * Obtiene el ID (código) de la URL.
+         * @returns {string | null} El valor del parámetro 'c' o null si no existe.
+         */
+        function getRedirectCode() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                // Retorna el valor en minúsculas por si acaso.
+                return urlParams.get('c')?.toLowerCase() || null; 
+            } catch (e) {
+                console.error("Error al obtener el código de la URL:", e);
+                return null;
+            }
+        }
+
+        /**
+         * Muestra el contenido de error y oculta la carga.
+         * @param {string} message Mensaje de error a mostrar.
+         */
+        function displayError(message) {
+            loadingContent.classList.add('hidden');
+            errorContent.classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+            redirectCard.classList.remove('border-cyan-500');
+            redirectCard.classList.add('border-red-500');
+            console.error(message);
+        }
+
+        /**
+         * Realiza la redirección forzada.
+         * @param {string} targetUrl La URL de destino.
+         */
+        function performRedirect(targetUrl) {
+            console.log(`Redirigiendo a: ${targetUrl}`);
+            // Usar replace() para evitar que la página de redirección quede en el historial
+            window.location.replace(targetUrl); 
+        }
+
+        /**
+         * Inicia la cuenta regresiva y la redirección.
+         * @param {string} targetUrl La URL de destino.
+         */
+        function startCountdownAndRedirect(targetUrl) {
+            let timeLeft = REDIRECT_DELAY_SECONDS;
+            countdownElement.textContent = timeLeft;
+
+            // Define la acción del botón manual y lo activa
+            manualRedirectBtn.disabled = false;
+            manualRedirectBtn.onclick = () => {
+                // Previene clicks duplicados
+                manualRedirectBtn.disabled = true; 
+                performRedirect(targetUrl);
+            };
+
+            const timer = setInterval(() => {
+                timeLeft -= 1;
+                countdownElement.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    manualRedirectBtn.disabled = true;
+                    manualRedirectBtn.textContent = "Redirigiendo...";
+                    performRedirect(targetUrl);
+                }
+            }, 1000);
+        }
+
+        /**
+         * Función principal que gestiona la carga y la lógica de redirección.
+         */
+        async function initRedirect() {
+            const code = getRedirectCode();
+
+            if (!code) {
+                displayError("Falta el código de redirección ('c') en la URL.");
+                return;
+            }
+
+            // 1. Mostrar el código
+            displayCode.textContent = code;
+
+            let redirectMap;
+            
+            try {
+                // 2. Cargar el archivo JSON (Esto requiere que el archivo data.json exista en la misma ruta)
+                const response = await fetch(REDIRECT_MAP_FILE);
+                
+                if (!response.ok) {
+                    throw new Error(`Error de carga: ${response.status} ${response.statusText}`);
+                }
+                
+                redirectMap = await response.json();
+                
+                console.log("Mapa de redirección cargado correctamente.");
+
+            } catch (error) {
+                displayError(`No se pudo cargar el archivo de mapeo (${REDIRECT_MAP_FILE}). Verifica que exista y esté accesible.`);
+                return;
+            }
+
+            // 3. Buscar el código
+            const targetUrl = redirectMap[code];
+
+            if (!targetUrl) {
+                displayError(`El código '${code}' no está mapeado a una URL válida en el archivo ${REDIRECT_MAP_FILE}.`);
+                return;
+            }
+
+            // 4. Si todo es correcto, iniciar la cuenta regresiva
+            console.log(`Código encontrado: ${code}. URL de destino: ${targetUrl}`);
+            startCountdownAndRedirect(targetUrl);
+        }
+
+        // Iniciar la aplicación al cargar la ventana
+        window.onload = initRedirect;
+        
+        // Manejo de errores globales (para fallos inesperados)
+        window.onerror = function(message, source, lineno, colno, error) {
+            if (errorContent.classList.contains('hidden')) {
+                displayError(`Error fatal en el script: ${message}.`);
+            }
+            return true;
+        };
+
+    </script>
+</body>
+</html>
+
