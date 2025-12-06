@@ -33,31 +33,35 @@
   /* Estilo general para elementos enfocables */
   [tabindex="0"]:focus, .focused {
     outline: none !important;
-    box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px rgba(255, 255, 255, 0.2);
+    /* Box-shadow más grande para que sea visible en TV */
+    box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px rgba(255, 255, 255, 0.2); 
     transition: box-shadow 0.2s ease-in-out, transform 0.1s ease;
     transform: scale(1.02);
     z-index: 100;
   }
   
-  /* Reset de escala para elementos que no queremos que se muevan (como la barra superior) */
-  header [tabindex="0"]:focus, header .focused {
+  /* Reset de escala para elementos que no queremos que se muevan (como la barra superior y slide del héroe) */
+  header [tabindex="0"]:focus, header .focused,
+  .hero-slide-link:focus, .hero-slide-link.focused {
     transform: none; 
     box-shadow: 0 0 0 4px var(--accent) !important;
   }
-  /* Quita el focus visual a la barra de navegacion fija cuando hay un modal abierto */
-  .buscador-flotante.activo ~ .bottom-nav a.focused {
-      box-shadow: none !important;
-      transform: none !important;
+
+  /* Estilo específico para el foco en el INPUT para que se vea diferente al botón */
+  #searchInput:focus, #searchInput.focused {
+    box-shadow: 0 0 0 2px var(--accent) !important;
+    border-color: var(--accent) !important;
+    transform: none;
   }
 
-  /* ====== HEADER MODIFICADO ====== */
+  /* ====== HEADER MODIFICADO (Contiene ahora la navegación) ====== */
   header.app-header{
     height:56px;
     background:#0b0b0b;
     display:flex;
     align-items:center;
-    justify-content:space-between; /* Alineación para incluir más elementos */
-    padding: 0 16px; /* Añadir padding */
+    justify-content:space-between; 
+    padding: 0 16px; 
     position:sticky;
     top:0;
     z-index:50;
@@ -72,7 +76,7 @@
   }
   .brand i{vertical-align:middle;margin-right:8px}
 
-  /* NUEVOS ESTILOS PARA LA NAV DE LA CABECERA */
+  /* ESTILOS PARA LA NAV DE LA CABECERA */
   .header-nav {
       display: flex;
       gap: 12px;
@@ -105,7 +109,7 @@
     overflow:hidden;
     background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.6));
   }
-  /* Hace el slide completo enfocable para seleccionar el contenido destacado */
+  /* Hace el slide completo enfocable */
   .hero-slide-link { 
     display: block;
     position:relative;
@@ -119,11 +123,7 @@
     display:block;
     filter:brightness(0.75);
   }
-  .hero-slide-link:focus, .hero-slide-link.focused {
-    transform: none; /* Desactivar scale en el slide del héroe */
-    box-shadow: 0 0 0 6px var(--accent) !important;
-  }
-
+  
   .hero-slide{
     display:none;
   }
@@ -266,12 +266,28 @@
     width:94%;max-width:720px;background:#0c0c0c;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
   }
   .search-row{display:flex;gap:8px}
-  .search-row input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff;font-size:15px}
-  .search-row button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+  .search-row input{
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.03);
+    background:transparent;
+    color:#fff;
+    font-size:15px
+  }
+  .search-row button{
+    padding:10px 12px;
+    border-radius:10px;
+    border:0;
+    background:var(--accent);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer
+  }
   .search-results{margin-top:12px;display:grid;grid-template-columns:1fr;gap:8px;max-height:360px;overflow:auto}
   .result-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);text-decoration:none;color:inherit}
   .result-item img{width:52px;height:72px;object-fit:cover;border-radius:6px}
-  .no-result{color:var(--accent);text-align:center;padding:12px}
+  .no-result{color:var(--muted);text-align:center;padding:12px;font-style:italic}
   /* Estilo de enfoque para resultados de búsqueda */
   .result-item:focus, .result-item.focused {
     outline: none;
@@ -418,12 +434,12 @@ const data = {
     { titulo:"Título Manga 3", imagen:"https://via.placeholder.com/140x170?text=Manga+3", url:"#", rating:6.2, fecha:"Nov. 27, 2023" },
     { titulo:"Título Manga 4", imagen:"https://via.placeholder.com/140x170?text=Manga+4", url:"#", rating:8.0, fecha:"2024" },
     { titulo:"Título Manga 5", imagen:"https://via.placeholder.com/140x170?text=Manga+5", url:"#", rating:7.5, fecha:"2025" }
-  ],//Animesh
+  ],
   pelisRecientes:[ // H RECOMENDADOS
-    { titulo:"Mitarashi Kousei", imagen:"https://via.placeholder.com/140x170?text=Comic+1", url:"./h/mitarashi/Mitarashi_Kousei.html", rating:8.9, fecha:"Finalizado" },
-    { titulo:"Execio (Yukimaru )", imagen:"https://via.placeholder.com/140x170?text=Comic+1", url:"./h/yukimaru/Execion_yukimaru.html", rating:5.6, fecha:"Finalizado" },
-    { titulo:"ToWer", imagen:"https://via.placeholder.com/140x170?text=Comic+1", url:"./h/tower/tower.html", rating:6.2, fecha:"Finalizado" },
-    { titulo:"ToWer 2", imagen:"https://via.placeholder.com/140x170?text=Comic+1", url:"./h/herem/herem.html", rating:6.2, fecha:"Finalizado" }
+    { titulo:"Mitarashi Kousei", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/mitarashi/Mitarashi_Kousei.html", rating:8.9, fecha:"Finalizado" },
+    { titulo:"Execio (Yukimaru )", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/yukimaru/Execion_yukimaru.html", rating:5.6, fecha:"Finalizado" },
+    { titulo:"ToWer", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/tower/tower.html", rating:6.2, fecha:"Finalizado" },
+    { titulo:"ToWer 2", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/herem/herem.html", rating:6.2, fecha:"Finalizado" }
   
   ]
 };
@@ -557,7 +573,7 @@ document.querySelectorAll('.nav-circle').forEach(btn=>{
 });
 
 /* ==========================
-   BUSCADOR (en tiempo real)
+   BUSCADOR (en tiempo real) - ADAPTADO PARA TV
    ========================== */
 const openSearch = document.getElementById('openSearch');
 const searchModal = document.getElementById('searchModal');
@@ -566,71 +582,101 @@ const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 const searchClear = document.getElementById('searchClear');
 
-openSearch.addEventListener('click', (e)=>{
+// Función que dispara la búsqueda y renderiza los resultados
+function executeSearch() {
+  const q = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = '';
+  
+  if (!q) {
+    searchResults.innerHTML = '';
+    return;
+  }
+  
+  // Combinar todas las listas (incluyendo jsonExtra si se cargó)
+  const all = [
+    ...data.animesRecientes,
+    ...data.animesLatinos,
+    ...data.loMasVisto,
+    ...data.ultimosAportes,
+    ...data.pelisRecientes,
+    ...(window.jsonExtra || [])
+  ];
+  
+  // Filtrar resultados por título
+  const results = all.filter(item => item.titulo.toLowerCase().includes(q));
+  
+  if (results.length === 0) {
+    searchResults.innerHTML = `<div class="no-result">No se encontraron resultados.</div>`;
+    return;
+  }
+  
+  // Renderizar resultados
+  results.forEach(r => {
+    const a = document.createElement('a');
+    a.className = 'result-item';
+    a.href = r.url || '#';
+    // Hacemos los resultados enfocables
+    a.setAttribute('tabindex', '0'); 
+    a.innerHTML = `<img src="${r.imagen}"><div><strong style="font-size:14px">${r.titulo}</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">${r.fecha || ''}</div></div>`;
+    searchResults.appendChild(a);
+  });
+  
+  // Si hay resultados, intenta enfocar el primero si el foco actual es el input
+  if (results.length > 0 && currentFocus === searchInput) {
+      setTimeout(() => {
+          const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
+          if (firstResult) {
+              focusElement(firstResult);
+          }
+      }, 50);
+  }
+}
+
+// Evento: Abrir Modal
+openSearch.addEventListener('click', (e) => {
   e.preventDefault();
   searchModal.classList.add('activo');
   searchModal.style.display = 'flex';
-  searchModal.setAttribute('aria-hidden','false');
+  searchModal.setAttribute('aria-hidden', 'false');
   searchInput.focus();
-  setInitialFocus(searchModal);
+  // El foco inicial será el input
+  focusElement(searchInput);
 });
 
-closeSearch.addEventListener('click', ()=>{
+// Evento: Cerrar Modal
+closeSearch.addEventListener('click', () => {
   closeModal();
 });
 
-searchClear.addEventListener('click', ()=>{
+// Evento: Borrar Input
+searchClear.addEventListener('click', () => {
   searchInput.value = '';
   searchResults.innerHTML = '';
   searchInput.focus();
+  focusElement(searchInput); // Asegurar que el input mantenga el foco
 });
 
-function closeModal(){
+function closeModal() {
+  searchModal.classList.remove('activo');
   searchModal.style.display = 'none';
-  searchModal.setAttribute('aria-hidden','true');
+  searchModal.setAttribute('aria-hidden', 'true');
   searchInput.value = '';
   searchResults.innerHTML = '';
   // Restaurar el foco al botón de búsqueda en la cabecera
   const focusablesInHeader = getFocusableElements(document.querySelector('.header-nav'));
   const searchButton = focusablesInHeader.find(el => el.id === 'openSearch');
-  if(searchButton) {
+  if (searchButton) {
       focusElement(searchButton);
   } else {
       setInitialFocus();
   }
 }
 
-/* Real-time search over all lists */
-searchInput.addEventListener('input', (e)=>{
-  const q = e.target.value.trim().toLowerCase();
-  searchResults.innerHTML = '';
-  if(!q) return;
-  
-  const all = [
-  ...data.animesRecientes,
-  ...data.animesLatinos,
-  ...data.loMasVisto,
-  ...data.ultimosAportes,
-  ...data.pelisRecientes,
-  ...(window.jsonExtra || [])
-];
-  const results = all.filter(item => item.titulo.toLowerCase().includes(q));
-  if(results.length === 0){
-    searchResults.innerHTML = `<div class="no-result">No se encontraron resultados.</div>`;
-    return;
-  }
-  
-  results.forEach(r=>{
-    const a = document.createElement('a');
-    a.className = 'result-item';
-    a.href = r.url || '#';
-    a.setAttribute('tabindex', '0'); 
-    a.innerHTML = `<img src="${r.imagen}"><div><strong style="font-size:14px">${r.titulo}</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">${r.fecha || ''}</div></div>`;
-    searchResults.appendChild(a);
-  });
+// Evento clave: Búsqueda en tiempo real por 'input'
+searchInput.addEventListener('input', (e) => {
+  // Disparamos la función de búsqueda
+  executeSearch();
 });
-
-window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
 
 /* Utility: escape html (small) */
 function escapeHtml(s){
@@ -640,22 +686,24 @@ function escapeHtml(s){
 
 /* ==========================
    LÓGICA DE NAVEGACIÓN D-PAD PARA ANDROID TV
-   (MISMA LÓGICA DE NAVEGACIÓN)
    ========================== */
 
 let currentFocus = null;
 
 function getFocusableElements(container = document) {
+  // Busca elementos con tabindex="0", enlaces, botones, inputs y tarjetas
   return Array.from(container.querySelectorAll('[tabindex="0"], a[href], button, input, .card'))
     .filter(el => {
       const style = window.getComputedStyle(el);
+      // Filtra elementos que no son visibles
       return style.display !== 'none' && style.visibility !== 'hidden' && !el.disabled && el.offsetParent !== null;
     })
     .map(el => {
+      // Si es parte de la tarjeta, asegúrate de devolver la tarjeta completa
       if(el.classList.contains('card')) return el.closest('.card');
       return el;
     })
-    .filter((v, i, a) => a.indexOf(v) === i); 
+    .filter((v, i, a) => a.indexOf(v) === i); // Elimina duplicados
 }
 
 function focusElement(el) {
@@ -667,10 +715,10 @@ function focusElement(el) {
     el.classList.add('focused');
     currentFocus = el;
 
-    // SCROLL VERTICAL
+    // SCROLL VERTICAL: Centra el elemento en la vista vertical
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    // SCROLL HORIZONTAL
+    // SCROLL HORIZONTAL: Mueve el carrusel horizontal si es necesario
     const carouselContainer = el.closest('.carousel');
     if (carouselContainer) {
         const elRect = el.getBoundingClientRect();
@@ -691,8 +739,6 @@ function findNextFocus(direction, focusables) {
   const currentRect = currentFocus.getBoundingClientRect();
   let next = null;
   let minDistance = Infinity;
-  let currentFocusGroup = currentFocus.closest('[data-focus-group]') ? currentFocus.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
-  const isCarousel = currentFocus.closest('.carousel');
 
   focusables.forEach(el => {
     if (el === currentFocus) return;
@@ -705,43 +751,24 @@ function findNextFocus(direction, focusables) {
 
     let isCandidate = false;
 
-    let elFocusGroup = el.closest('[data-focus-group]') ? el.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
-    const isDifferentGroup = currentFocusGroup !== elFocusGroup;
-    let priorityFactor = isDifferentGroup ? 1000 : 1; 
-
     switch (direction) {
       case 'left':
-        if (rect.right < currentRect.left - 5 && isSameRow) {
-          isCandidate = true;
-        } else if (!isCarousel && rect.right < currentRect.left && isDifferentGroup && isSameRow) {
-            isCandidate = true;
-        }
+        if (rect.right < currentRect.left - 5 && isSameRow) { isCandidate = true; }
         break;
       case 'right':
-        if (rect.left > currentRect.right + 5 && isSameRow) {
-          isCandidate = true;
-        } else if (!isCarousel && rect.left > currentRect.right && isDifferentGroup && isSameRow) {
-            isCandidate = true;
-        }
+        if (rect.left > currentRect.right + 5 && isSameRow) { isCandidate = true; }
         break;
       case 'up':
-        if (rect.bottom < currentRect.top - 5 && isSameColumn) {
-          isCandidate = true;
-        } else if (rect.bottom < currentRect.top && isDifferentGroup && isSameColumn) {
-            isCandidate = true;
-        }
+        if (rect.bottom < currentRect.top - 5 && isSameColumn) { isCandidate = true; }
         break;
       case 'down':
-        if (rect.top > currentRect.bottom + 5 && isSameColumn) {
-          isCandidate = true;
-        } else if (rect.top > currentRect.bottom && isDifferentGroup && isSameColumn) {
-            isCandidate = true;
-        }
+        if (rect.top > currentRect.bottom + 5 && isSameColumn) { isCandidate = true; }
         break;
     }
 
     if (isCandidate) {
-      const distance = Math.hypot(rect.left - currentRect.left, rect.top - currentRect.top) * priorityFactor;
+      // Distancia euclídea (Pythagoras)
+      const distance = Math.hypot(rect.left - currentRect.left, rect.top - currentRect.top); 
       if (distance < minDistance) {
         minDistance = distance;
         next = el;
@@ -749,7 +776,7 @@ function findNextFocus(direction, focusables) {
     }
   });
 
-  // Fallback para encontrar el elemento más cercano si no se encuentra en el mismo eje
+  // Fallback: Si no hay un candidato directo en el eje, busca el más cercano en la dirección
   if (!next) { 
       let minGlobalDistance = Infinity;
       focusables.forEach(el => {
@@ -785,24 +812,41 @@ function findNextFocus(direction, focusables) {
 
 function setInitialFocus(container = document.body) {
     let focusables = getFocusableElements(container);
-    if (focusables.length > 0) {
+    // Intentar enfocar el primer elemento de la barra de navegación superior
+    const headerNav = document.querySelector('.header-nav a[tabindex="0"]');
+    if (headerNav) {
+        focusElement(headerNav);
+    } else if (focusables.length > 0) {
         focusElement(focusables[0]);
     }
 }
 
 
 window.addEventListener('load', () => {
-    // El enfoque ahora debe iniciar en el primer elemento de la barra superior.
     setInitialFocus(); 
 });
 
 
 // Manejar las teclas del D-Pad
 window.addEventListener('keydown', (e) => {
+    
+  // 1. Enter en el Input de Búsqueda
+  if (currentFocus === searchInput && (e.key === 'Enter' || e.key === 'NumpadEnter')) {
+    e.preventDefault();
+    executeSearch(); 
+    const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
+    if (firstResult) {
+        focusElement(firstResult);
+    }
+    return;
+  }
+    
+  // 2. Si el foco está en un INPUT y NO es el modal, asumimos que el usuario está escribiendo.
   if (currentFocus && currentFocus.tagName === 'INPUT' && !searchModal.classList.contains('activo')) {
       return; 
   }
 
+  // 3. Manejo de Navegación dentro del Modal de Búsqueda
   if (searchModal.classList.contains('activo')) {
     const focusablesInModal = getFocusableElements(searchModal);
     let nextFocus = null;
@@ -812,31 +856,42 @@ window.addEventListener('keydown', (e) => {
       return;
     }
     
-    switch (e.key) {
-      case 'ArrowUp':
-        e.preventDefault();
-        nextFocus = findNextFocus('up', focusablesInModal);
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        nextFocus = findNextFocus('down', focusablesInModal);
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        nextFocus = findNextFocus('left', focusablesInModal);
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        nextFocus = findNextFocus('right', focusablesInModal);
-        break;
-      case 'Enter': 
-        e.preventDefault();
-        if(currentFocus && currentFocus.href) {
-            window.location.href = currentFocus.href;
-        } else if (currentFocus && currentFocus.click) {
-            currentFocus.click();
+    // Lógica de navegación especial para el INPUT de búsqueda
+    if (currentFocus === searchInput) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
+            const clearButton = document.getElementById('searchClear');
+            // Prioridad: 1. Primer resultado, 2. Botón Borrar
+            nextFocus = firstResult || clearButton; 
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            nextFocus = document.getElementById('searchClear');
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            // Evitar que el foco se mueva si estamos en el input, permitiendo la escritura
+            e.preventDefault();
+            return;
         }
-        return;
+    } else {
+        // Lógica de navegación normal para botones y resultados
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            nextFocus = findNextFocus('up', focusablesInModal);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            nextFocus = findNextFocus('down', focusablesInModal);
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            nextFocus = findNextFocus('left', focusablesInModal);
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            nextFocus = findNextFocus('right', focusablesInModal);
+            break;
+        }
     }
 
     if (nextFocus) {
@@ -844,6 +899,8 @@ window.addEventListener('keydown', (e) => {
     }
     return;
   }
+  
+  // 4. Navegación en el Cuerpo Principal (si el modal está cerrado)
   
   const focusables = getFocusableElements();
   let nextFocus = null;
@@ -901,7 +958,7 @@ async function cargarJSON(url){
 }
 
 async function cargarTodos(){
-  // Comentar estas líneas si no tienes esos archivos, o descomentarlas si funcionan
+  // --- Descomenta y ajusta las rutas si usas JSONs externos ---
   // const j1 = await cargarJSON("./json1.json"); 
   // const j2 = await cargarJSON("./jsons/manga2.json");
   // const j3 = await cargarJSON("./jsons/comics.json");
