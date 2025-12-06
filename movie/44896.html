@@ -467,7 +467,7 @@ const THUMBNAIL_SIZE = "w300";
 let currentSeriesData = null; 
 
 // -----------------------------------------------------
-// LÓGICA DE REPRODUCCIÓN (CORREGIDA)
+// LÓGICA DE REPRODUCCIÓN (ALERTA ELIMINADA)
 // -----------------------------------------------------
 
 /**
@@ -477,17 +477,18 @@ let currentSeriesData = null;
  */
 function goToPlayer(url, title) {
     if (!url || url.trim() === '') {
-        alert(`No se encontró una URL de reproducción configurada para: ${title}.`);
+        console.error(`Error: No se encontró una URL de reproducción configurada para: ${title}.`);
+        // Puedes agregar aquí un alert si quieres que el usuario sepa que falló: alert(`Error de reproducción.`);
         return;
     }
     
-    // Alerta de seguridad para recordarte cambiar las URLs de ejemplo
+    // Si la URL sigue siendo el placeholder, detenemos la ejecución.
     if (url.includes('URL_DEL_EPISODIO')) { 
-         alert(`URL de reproducción no configurada para: ${title}. Por favor, reemplaza la URL placeholder en STREAM_URLS.`);
+         console.warn(`Advertencia: URL de reproducción placeholder encontrada para: ${title}.`);
          return;
     }
 
-    alert(`Iniciando reproducción de: ${title} -> URL: ${url}`);
+    // *** SE ELIMINÓ LA LÍNEA alert(...) PARA QUE NO APAREZCA LA VENTANA EMERGENTE. ***
     
     // *** ESTA LÍNEA REALIZA LA REDIRECCIÓN A LA URL DE REPRODUCCIÓN ***
     window.location.href = url; 
@@ -771,7 +772,7 @@ let focusableElements = [];
 let focusedElementIndex = 0;
 
 function setupNavigation() {
-    // Recoge TODOS los elementos navegables, y solo una vez (Back Button)
+    // Recoge TODOS los elementos navegables
     focusableElements = Array.from(document.querySelectorAll('.back-button, [data-nav-item="button"], [data-nav-item="selector"], [data-nav-item="episode"], [data-nav-item="related"]'));
     
     // Asegura que el índice actual no esté fuera de los límites
@@ -782,7 +783,7 @@ function setupNavigation() {
     // Si no hay foco aún, o si la lista se actualizó, establece el foco inicial
     const currentFocusElement = document.querySelector('.focused');
     if (!currentFocusElement && focusableElements.length > 0) {
-        // Inicia el foco en el botón principal (índice 1, después del botón de regresar)
+        // Intenta iniciar el foco en el botón principal (índice 1, después del botón de regresar)
         setFocus(1); 
     }
 }
@@ -831,8 +832,7 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    // Lógica básica de movimiento lineal para la navegación con D-Pad (Up/Down/Left/Right)
-    // NOTA: Para navegación compleja (como saltar de fila en fila), se necesitaría lógica de coordenadas.
+    // Lógica básica de movimiento lineal para la navegación con D-Pad
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         newIndex = focusedElementIndex + 1; 
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -850,7 +850,7 @@ document.addEventListener('keydown', (e) => {
             streamUrl = currentElement.getAttribute('data-stream-url');
             playTitle = currentElement.querySelector('.episode-num-title').textContent;
             goToPlayer(streamUrl, playTitle);
-            return; // Salir después de la acción
+            return; 
 
         } else if (elementType === 'button' && currentElement.id === 'play-main-button') {
             // Reproducir Botón Principal
@@ -859,23 +859,25 @@ document.addEventListener('keydown', (e) => {
                 playTitle = currentSeriesData.title;
             } else if (MEDIA_TYPE === 'tv' && currentSeriesData) {
                 // Por defecto intenta reproducir el S1E1
-                streamUrl = STREAM_URLS['S1E1']; // Asume que S1E1 es el inicio
+                streamUrl = STREAM_URLS['S1E1']; 
                 playTitle = `${currentSeriesData.name} - S1E1 (Inicio)`;
             }
             goToPlayer(streamUrl, playTitle);
-            return; // Salir después de la acción
+            return;
             
         } else if (elementType === 'back') {
-            alert("Navegando a 'home.html'");
+            // Se puede quitar el alert para que sea directo:
+            // alert("Navegando a 'home.html'");
             window.location.href = 'https://raw.githack.com/inkaflix/playerapi/main/home/home.html';
             return;
             
         } else if (elementType === 'related') {
-             alert(`Navegando a contenido relacionado: ${currentElement.title}`);
-             // En una aplicación real, aquí cambiarías la URL con los nuevos datos
-             // window.location.href = `detail.html?id=${currentElement.dataset.mediaId}&type=${currentElement.dataset.mediaType}`;
+             // Opcional: Navegación a otro detalle
+             // alert(`Navegando a contenido relacionado: ${currentElement.title}`);
              return;
         }
+        
+        // Si el elemento es un selector, la navegación es automática.
     }
     
     // Solo aplica el nuevo foco si hubo un cambio de índice
