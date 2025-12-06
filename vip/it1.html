@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor Multi-Servidor Estabilizado con Anuncios y Descarga</title> 
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script> 
+    
+    <script type="text/javascript" src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    
+    <script src="https://www.gstatic.com/cv/js/sender/prod/cast_sender.js?loadCastFramework=1"></script>
+    
+    <style>
+        /* ------------------------------------------------------------------ */
+        /* ESTILOS CSS */
+        /* ------------------------------------------------------------------ */
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        .video-player-container {
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* ⭐️ CLAVE: Ocultar el cursor solo cuando está reproduciendo y los controles están ocultos ⭐️ */
+        .controls-hidden.playing {
+            cursor: none; 
+        }
+        
+        #actual-video {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: contain;
+            z-index: 1; 
+        }
+
+        /* ⭐️ ESTILO PARA LA IMAGEN DE PORTADA ⭐️ */
+        #poster-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            z-index: 2; 
+            pointer-events: auto; 
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        #poster-image.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ---------------------- ESTILO DEL AD CONTAINER (Donde se dibuja el anuncio y el botón Skip) ---------------------- */
+        #ad-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5; 
+            pointer-events: none; 
+        }
+        
+        #ad-container.active {
+            pointer-events: auto; 
+        }
+        
+        /* Asegurarse de que el elemento del SDK dentro de ad-container ocupe todo el espacio */
+        #ad-container > div, 
+        #ad-container > div > div {
+             width: 100% !important;
+             height: 100% !important;
+        }
+
+        /* ⭐️ ESTILO DEL OVERLAY PARA EL CONTADOR (Parte Superior/Centro) ⭐️ */
+        #custom-ad-counter-overlay {
+            position: absolute;
+            top: 15px; 
+            left: 50%;
+            transform: translateX(-50%); 
+            z-index: 12; 
+            pointer-events: none; 
+            display: none; 
+        }
+
+        #custom-ad-counter-overlay #ad-title-info {
+            display: flex; 
+            align-items: center;
+            background-color: rgba(244, 67, 54, 0.8); 
+            color: white;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            pointer-events: auto; 
+        }
+
+
+        /* ---------------------- ESTILOS DEL OVERLAY DE CARGA ---------------------- */
+        #loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6); 
+            z-index: 15; 
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease; 
+        }
+
+        #loading-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loading-message {
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transform: scale(0.9); 
+            opacity: 0; 
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease; 
+        }
+
+        #loading-overlay.visible .loading-message {
+            transform: scale(1); 
+            opacity: 1; 
+        }
+        
+        /* Controles y Título */
+        .top-controls, .center-controls, .bottom-controls {
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Esto oculta los controles */
+        .controls-hidden .top-controls,
+        .controls-hidden .center-controls,
+        .controls-hidden .bottom-controls {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .top-controls {
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        .top-left-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .video-title {
+            font-size: 1.2em;
+            line-height: 1.2;
+            margin-left: 0;
+        }
+
+        .video-title small {
+            font-size: 0.7em;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .top-right-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+        }
+        
+        /* ---------------------- ESTILOS DEL MENÚ FLOTANTE (SERVIDOR) ---------------------- */
+        .quality-menu {
+            position: absolute;
+            top: 55px; 
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.85);
+            border-radius: 8px;
+            padding: 10px;
+            width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 20; 
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+        }
+
+        .quality-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .menu-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        /* Estilos para los botones de servidor */
+        .server-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        .server-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .server-btn.active {
+            background-color: #2196F3; 
+            font-weight: bold;
+        }
+
+        /* ----------------------------------------------------------------------------------------- */
+        
+        /* Controles Centrales */
+        .center-controls {
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        /* Ocultar controles centrales durante el anuncio */
+        .ad-active .center-controls {
+            display: none;
+        }
+
+        /* Estilo base para todos los botones centrales (55px) */
+        .center-controls .control-button {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: background-color 0.1s;
+        }
+        
+        /* ⭐️ TAMAÑO DEL BOTÓN DE PLAY ESTÁNDAR (PAUSADO) ⭐️ */
+        /* Revertimos al tamaño de 55px (igual que los demás botones centrales) */
+        .center-controls .control-button.play-pause-btn.is-paused {
+            width: 55px; 
+            height: 55px;
+            background-color: rgba(255, 255, 255, 0.2); 
+            border: none; 
+            box-shadow: none; 
+        }
+        /* Aseguramos que el ícono de la flecha tenga el tamaño estándar */
+        .center-controls .control-button.play-pause-btn.is-paused .icon {
+            font-size: 32px; 
+        }
+
+        /* Estilo base para los íconos centrales (32px) */
+        .center-controls .icon {
+            font-size: 32px;
+            color: #fff;
+        }
+        
+        .center-controls .control-button.seek-back .icon {
+            transform: scaleX(-1);
+        }
+
+        /* Controles Inferiores */
+        .bottom-controls {
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2.5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #fff;
+            border-radius: 2.5px;
+            position: relative;
+            transition: width 0.1s linear;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        /* ⭐️ CLAVE: Estilos para el nuevo botón de descarga y los iconos inferiores ⭐️ */
+        .bottom-right-icons {
+            align-self: flex-end;
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+        }
+        
+        #cast-button {
+            cursor: pointer;
+            --container-height: 24px;
+            --icon-margin: 0;
+        }
+        #caption-btn {
+            display: none; 
+        }
+        
+        /* Contenedor para el control de volumen de anuncios (Requerido por IMA SDK) */
+        #ad-volume-control {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            z-index: 20; 
+            width: 50px; 
+            height: 50px;
+            opacity: 0; 
+            pointer-events: none;
+        }
+
+        /* Estilo para el botón de descarga */
+        #download-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="video-player-container" id="player-container">
+        
+        <div id="ad-container"></div>
+        <img id="poster-image" src="https://image.tmdb.org/t/p/w300/uwKrKvprzNW9ACtSB27MlzOpIHL.jpg" alt="Poster de la película o serie">
+        
+        <video id="actual-video" preload="auto" playsinline></video>
+        
+        <div id="custom-ad-counter-overlay">
+            <span id="ad-title-info">Ads - <span id="ad-message">Saltable en (<span id="ad-countdown">0</span>)</span></span>
+        </div>
+        
+        <div id="loading-overlay">
+            <span class="loading-message">Cargando VIP...</span>
+        </div>
+        
+        <div class="top-controls">
+            <div class="top-left-info" id="top-left-info-block"> 
+                
+                <div class="video-title">
+                  it - Biemvenidos a derry 1x1                              <br>
+                    <small id="video-info">Cargando VIP...</small>
+                </div>
+            </div>
+            
+            <div class="top-right-icons">
+                <span class="material-icons icon" id="settings-btn">settings</span> 
+                
+                <google-cast-launcher id="cast-button"></google-cast-launcher>
+                <span class="material-icons icon" id="caption-btn">closed_caption</span>
+            </div>
+        </div>
+        
+        <div class="quality-menu" id="server-menu"> 
+            <div class="menu-header">Seleccionar Servidor</div>
+            <div id="server-options-container">
+                </div>
+        </div>
+
+        <div class="center-controls">
+            <div class="control-button seek-back" id="seek-back">
+                <span class="material-icons icon">replay_10</span> 
+            </div>
+            <div class="control-button play-pause-btn is-paused" id="play-pause-btn">
+                <span class="material-icons icon" id="play-pause-icon">play_arrow</span>
+            </div>
+            <div class="control-button seek-forward" id="seek-forward">
+                <span class="material-icons icon">replay_10</span> 
+            </div>
+        </div>
+
+        <div class="bottom-controls">
+            <div class="time-info">
+                <span id="current-time">00:00</span>
+                <span id="remaining-time">-00:00</span>
+            </div>
+            <div class="progress-bar-container" id="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="bottom-right-icons">
+                <span class="material-icons icon" id="download-btn">file_download</span> 
+                <span class="material-icons icon" id="fullscreen-btn">fullscreen</span>
+            </div>
+            </div>
+        
+        <div id="ad-volume-control"></div>
+    </div>
+
+    <script>
+        // ------------------------------------------------------------------
+        // CONFIGURACIÓN: LISTA DE SERVIDORES
+        // ------------------------------------------------------------------
+        
+        const SERVERS = [
+            { 
+                id: 'server1', 
+                name: 'VIP1', 
+                url: 'https://seed122.bitchute.com/7cukvULQ2HZJ/OJ7PquK3tD7T.mp4', 
+                type: 'mp4' // si es m3u8 solo cambia el type
+            },
+            { 
+                id: 'server2', 
+                name: 'VIP2', 
+                url: 'https://seed122.bitchute.com/7cukvULQ2HZJ/OJ7PquK3tD7T.mp4', 
+                type: 'mp4' 
+            },
+            { 
+                id: 'server3', 
+                name: 'VIP3', 
+                url: 'https://seed122.bitchute.com/7cukvULQ2HZJ/OJ7PquK3tD7T.mp4', 
+                type: 'mp4' 
+            }
+        ];
+
+        // ------------------------------------------------------------------
+        // CONFIGURACIÓN: ANUNCIOS
+        // ------------------------------------------------------------------
+        
+        // ⭐️ Tu URL de anuncio original
+        const VAST_URL = 'https://impeccable-sense.com/dhmpF.z/dpGHNevXZGG/Un/EepmO9Bu/ZOUClukeP/TKYp3RM/D/k/wUNyz/YRtLNKjKc_wkOmTQAL3-NhycZrsoabW/1Opvd/DK0lxC';
+        
+        // Cue points: '0' para Pre-roll, '15' para Mid-roll.
+        const CUE_POINTS = '0,15'; 
+        // ------------------------------------------------------------------
+        
+        let currentServerId = SERVERS[0].id; // Cargar el primer servidor por defecto
+        
+        const video = document.getElementById('actual-video');
+        const playerContainer = document.getElementById('player-container');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+        const seekBackBtn = document.getElementById('seek-back');
+        const seekForwardBtn = document.getElementById('seek-forward');
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const remainingTimeDisplay = document.getElementById('remaining-time');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const castButton = document.getElementById('cast-button'); 
+        const loadingOverlay = document.getElementById('loading-overlay'); 
+        const videoInfoDisplay = document.getElementById('video-info');
+        // ⭐️ CLAVE: Referencia al nuevo botón de descarga ⭐️
+        const downloadBtn = document.getElementById('download-btn'); 
+        
+        // ⭐️ REFERENCIA AL POSTER ⭐️
+        const posterImage = document.getElementById('poster-image'); 
+        
+        // ELEMENTOS DE ANUNCIOS
+        const adContainer = document.getElementById('ad-container');
+        const customAdCounterOverlay = document.getElementById('custom-ad-counter-overlay');
+        const adCountdown = document.getElementById('ad-countdown');
+        const adMessage = document.getElementById('ad-message'); 
+
+        // ELEMENTOS DEL MENÚ DE SERVIDORES
+        const settingsBtn = document.getElementById('settings-btn'); 
+        const serverMenu = document.getElementById('server-menu');   
+        const serverOptionsContainer = document.getElementById('server-options-container'); 
+
+        const allControls = document.querySelectorAll('.top-controls, .center-controls, .bottom-controls');
+
+        let controlsTimeout; 
+        let isDragging = false; 
+        let wasPlayingBeforeDrag = false; 
+        let hlsInstance = null; 
+        
+        // Variables de Ads
+        let adsManager = null;
+        let adsLoader = null;
+        let adDisplayContainer = null;
+        let adsInitialized = false; 
+        let isAdPlaying = false;
+        let userInteractionInitiated = false; 
+
+        // ------------------------------------------------------------------
+        // GESTOR DE ANUNCIOS (ADS MANAGER)
+        // ------------------------------------------------------------------
+        
+        function initAdsManager() {
+            if (typeof google === 'undefined' || typeof google.ima === 'undefined') {
+                console.error("IMA SDK no cargado.");
+                return;
+            }
+            
+            if (!adsInitialized) {
+                adsInitialized = true;
+                
+                console.log("Inicializando Ad Manager.");
+
+                // El elemento de volumen es esencial para la compatibilidad del SDK
+                adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, video, document.getElementById('ad-volume-control'));
+                adsLoader = new google.ima.AdsLoader(adContainer);
+                
+                adsLoader.addEventListener(
+                    google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+                    onAdsManagerLoaded,
+                    false
+                );
+                adsLoader.addEventListener(
+                    google.ima.AdErrorEvent.Type.AD_ERROR,
+                    onAdError,
+                    false
+                );
+
+                adDisplayContainer.initialize();
+            }
+            
+            requestAds(VAST_URL, CUE_POINTS);
+        }
+        
+        function requestAds(adTagUrl, cuePoints) {
+            console.log("Solicitando anuncios con cue points:", cuePoints);
+            const adsRequest = new google.ima.AdsRequest();
+            adsRequest.adTagUrl = adTagUrl;
+            
+            adsRequest.nonLinearAdSlotWidth = 0;
+            adsRequest.nonLinearAdSlotHeight = 0;
+            adsRequest.setAdWillAutoPlay(true);
+            adsRequest.setAdWillPlayMuted(false); 
+            adsRequest.linearAdSlotWidth = playerContainer.offsetWidth;
+            adsRequest.linearAdSlotHeight = playerContainer.offsetHeight;
+            adsRequest.vastLoadTimeout = 8000;
+            
+            adsLoader.requestAds(adsRequest);
+        }
+
+        function onAdsManagerLoaded(adsManagerLoadedEvent) {
+            console.log("Ads Manager Loaded. Listo para iniciar en el primer clic.");
+            
+            const adsRenderingSettings = new google.ima.AdsRenderingSettings();
+            adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete = true; 
+            
+            // ⭐️ CONFIGURACIÓN CLAVE: El botón Skip aparece a los 15 segundos si el VAST lo permite.
+            adsRenderingSettings.skipButtonDisplayTime = 15000;
+
+            adsManager = adsManagerLoadedEvent.getAdsManager(video, adsRenderingSettings);
+
+            adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, onContentPauseRequested);
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, onContentResumeRequested);
+            adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, onAllAdsCompleted);
+            
+            adsManager.addEventListener(google.ima.AdEvent.Type.AD_PROGRESS, onAdProgress);
+            adsManager.addEventListener(google.ima.AdEvent.Type.SKIPPABLE_STATE_CHANGED, onSkippableStateChanged);
+            adsManager.addEventListener(google.ima.AdEvent.Type.STARTED, onAdStarted);
+            adsManager.addEventListener(google.ima.AdEvent.Type.COMPLETE, onAdCompleted);
+
+            try {
+                const viewMode = document.fullscreenElement ? google.ima.ViewMode.FULLSCREEN : google.ima.ViewMode.NORMAL;
+                adsManager.init(playerContainer.offsetWidth, playerContainer.offsetHeight, viewMode);
+            } catch (adError) {
+                console.error("Ad Manager Init Error:", adError);
+                // Si falla el init, aseguramos el inicio del video.
+                if (video.paused) video.play(); 
+            }
+        }
+        
+        function onAdError(adErrorEvent) {
+            console.error('Ad Error:', adErrorEvent.getError().toString());
+            // Si hay un error, el video debe reanudar si estaba en pausa por el ad.
+            if (video.paused && !userInteractionInitiated) {
+                 video.play();
+            }
+            isAdPlaying = false;
+            playerContainer.classList.remove('ad-active');
+            customAdCounterOverlay.style.display = 'none'; // Ocultar el nuevo contador
+            document.querySelector('.video-title').style.display = 'block';
+        }
+        
+        function onContentPauseRequested() {
+            console.log("Content Pause Requested.");
+            video.pause();
+            isAdPlaying = true;
+            playerContainer.classList.add('ad-active'); 
+            adContainer.classList.add('active');
+        }
+
+        function onContentResumeRequested() {
+            console.log("Content Resume Requested.");
+            isAdPlaying = false;
+            playerContainer.classList.remove('ad-active');
+            customAdCounterOverlay.style.display = 'none'; // Ocultar el nuevo contador
+            adContainer.classList.remove('active');
+            document.querySelector('.video-title').style.display = 'block';
+            
+            // ⭐️ OCULTAR EL POSTER AL REANUDAR EL CONTENIDO ⭐️
+            posterImage.classList.add('hidden'); 
+            
+            // Solo reproducir si no estamos en medio de una pausa intencional por el usuario.
+            if (!video.paused) { 
+                video.play();
+            }
+        }
+        
+        function onAllAdsCompleted() {
+             console.log("All Ads Completed.");
+        }
+        
+        function onAdStarted(adEvent) {
+            console.log("Ad Started.");
+            if (adEvent.getAd().isLinear()) {
+                customAdCounterOverlay.style.display = 'block'; // Mostrar el contador personalizado
+                document.querySelector('.video-title').style.display = 'none';
+            }
+        }
+        
+        function onAdCompleted(adEvent) {
+            console.log("Ad Completed.");
+            document.querySelector('.video-title').style.display = 'block';
+        }
+
+        // ⭐️ FUNCIÓN CLAVE: Lógica del contador en la parte superior central ⭐️
+        function onAdProgress(adEvent) {
+            const ad = adEvent.getAd();
+            const currentTime = adEvent.getAdData().currentTime;
+            const duration = ad.getDuration();
+            
+            // Tiempo límite de skip (15 segundos)
+            const skipThreshold = 15; 
+            
+            if (currentTime < skipThreshold) {
+                // Muestra el tiempo restante hasta que el botón 'Skip' esté disponible
+                const remainingToSkip = Math.ceil(skipThreshold - currentTime);
+                adCountdown.textContent = remainingToSkip > 0 ? remainingToSkip : 0;
+                adMessage.innerHTML = `Saltable en (<span id="ad-countdown">${adCountdown.textContent}</span>)`;
+            } else {
+                // Muestra el tiempo restante total del anuncio
+                const remainingTime = Math.ceil(duration - currentTime);
+                adCountdown.textContent = remainingTime > 0 ? remainingTime : 0;
+                
+                // Muestra el mensaje si ya se puede saltar (el botón del SDK debe aparecer en la esquina inferior)
+                if (ad.isSkippable()) {
+                     adMessage.innerHTML = `Saltar ya (Restante: <span id="ad-countdown">${adCountdown.textContent}</span>)`;
+                } else {
+                     adMessage.innerHTML = `Anuncio (Restante: <span id="ad-countdown">${adCountdown.textContent}</span>)`;
+                }
+            }
+        }
+
+        function onSkippableStateChanged(adEvent) {
+            // El SDK maneja la UI del botón de saltar, ahora a partir de los 15s (si el VAST lo permite).
+        }
+        
+        // ------------------------------------------------------------------
+        // FUNCIONES DE UTILIDAD Y REPRODUCTOR
+        // ------------------------------------------------------------------
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '00:00';
+            const absSeconds = Math.abs(seconds);
+            const h = Math.floor(absSeconds / 3600);
+            const m = Math.floor((absSeconds % 3600) / 60);
+            const s = Math.floor(absSeconds % 60);
+            
+            let timeString = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            if (h > 0) {
+                timeString = (h < 10 ? '0' : '') + h + ':' + timeString;
+            }
+            return timeString;
+        }
+
+        function togglePlayPause() {
+            if (isAdPlaying) return; 
+
+            // CLAVE: LÓGICA DE INICIO DE ANUNCIOS (PRE-ROLL) EN EL PRIMER CLIC
+            if (!userInteractionInitiated && adsManager) {
+                userInteractionInitiated = true;
+                
+                // Aseguramos que los controles se oculten después del inicio
+                playerContainer.classList.add('controls-hidden');
+
+                try {
+                    adsManager.start(); 
+                    console.log("IMA: Ad Manager Start ejecutado por el clic del usuario.");
+                    video.pause(); 
+                    return; 
+                } catch (adError) {
+                    console.error("IMA: Error al iniciar el Ad Manager con .start():", adError);
+                    // Si falla el inicio de Ads, reproducimos el contenido directamente.
+                    video.play();
+                }
+            }
+
+            if (video.paused || video.ended) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+        
+        function scrub(e) {
+            if (!video.duration || isAdPlaying) return; 
+
+            const clientX = e.touches ? e.changedTouches[0].pageX : e.clientX;
+
+            const rect = progressBarContainer.getBoundingClientRect();
+            const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+            const percent = clickX / rect.width;
+            
+            video.currentTime = video.duration * percent;
+            
+            progressBar.style.width = percent * 100 + '%';
+            currentTimeDisplay.textContent = formatTime(video.currentTime);
+            remainingTimeDisplay.textContent = '-' + formatTime(video.duration - video.currentTime);
+        }
+
+        // ⭐️ CLAVE: Función para habilitar/deshabilitar el botón de descarga ⭐️
+        function updateDownloadButton(server) {
+            if (server && server.type === 'mp4') {
+                downloadBtn.classList.remove('disabled');
+                downloadBtn.title = 'Descargar video';
+            } else {
+                downloadBtn.classList.add('disabled');
+                downloadBtn.title = 'Descarga solo disponible para servidores MP4';
+            }
+        }
+
+        // ⭐️ CLAVE: Función para iniciar la descarga del video (FORZADA con Blob) ⭐️
+        async function startDownload() {
+            const server = SERVERS.find(s => s.id === currentServerId);
+            
+            if (!server || server.type !== 'mp4') {
+                alert('La descarga solo está disponible para videos MP4.');
+                return;
+            }
+
+            // 1. Mostrar mensaje de carga
+            loadingOverlay.classList.add('visible');
+            const titleElement = document.querySelector('.video-title').textContent.trim();
+            // Aseguramos que el nombre del archivo sea apto para descarga
+            const cleanTitle = titleElement.replace(/[^\w\s-]/g, '').replace(/[\s-]+/g, '_'); 
+            const filename = `${cleanTitle}_${server.name}.mp4`;
+            document.querySelector('.loading-message').textContent = 'Preparando descarga...';
+
+
+            try {
+                // 2. Usar fetch para obtener el archivo MP4 como datos binarios
+                const response = await fetch(server.url);
+
+                if (!response.ok) {
+                    throw new Error(`Error al obtener el archivo: ${response.statusText}`);
+                }
+
+                // 3. Obtener los datos como un Blob
+                const blob = await response.blob();
+                
+                // 4. Crear una URL de objeto temporal para el Blob
+                const url = window.URL.createObjectURL(blob);
+
+                // 5. Crear un enlace temporal para forzar la descarga
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename; 
+                
+                document.body.appendChild(a);
+                a.click();
+
+                // 6. Limpiar la URL de objeto después de la descarga (con un pequeño retardo)
+                // Es importante hacer esto para liberar memoria
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    console.log(`Descarga iniciada de: ${filename}`);
+                }, 100); 
+
+                alert(`Descarga de "${filename}" iniciada. Revisa tus descargas.`);
+
+            } catch (error) {
+                console.error("Error al forzar la descarga:", error);
+                alert(`No se pudo descargar el archivo. Intenta de nuevo. Detalles: ${error.message}`);
+            } finally {
+                // 7. Ocultar la pantalla de carga y restaurar el mensaje
+                loadingOverlay.classList.remove('visible');
+                document.querySelector('.loading-message').textContent = 'Cargando VIP...';
+            }
+        }
+
+        // Función reutilizable para manejar la finalización de la carga (MP4 y HLS)
+        function onVideoLoaded(server, currentTime, wasPlaying) {
+            // ⭐️ CORRECCIÓN CLAVE: Inicializar Ads Manager solo después de cargar los metadatos. ⭐️
+            if (typeof google !== 'undefined' && typeof google.ima !== 'undefined') {
+                initAdsManager();
+            }
+
+            video.currentTime = currentTime; 
+            loadingOverlay.classList.remove('visible');
+            remainingTimeDisplay.textContent = '-' + formatTime(video.duration);
+            
+            // Si el video estaba reproduciéndose, intentamos reproducir. El ad manager se encargará
+            // de la reproducción si es el primer clic.
+            if (wasPlaying && userInteractionInitiated) {
+                video.play().catch(e => console.error("Error al reanudar:", e));
+            }
+        }
+
+        function loadServer(serverId) {
+            const server = SERVERS.find(s => s.id === serverId);
+            if (!server) {
+                console.error(`Servidor ID ${serverId} no encontrado.`);
+                return;
+            }
+
+            document.querySelectorAll('.server-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${serverId}`).classList.add('active');
+
+
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+            
+            const wasPlaying = !video.paused;
+            const currentTime = video.currentTime;
+            
+            loadingOverlay.classList.add('visible');
+            videoInfoDisplay.textContent = server.name;
+            currentServerId = server.id;
+
+            // ⭐️ CLAVE: Actualizar el botón de descarga con el nuevo servidor ⭐️
+            updateDownloadButton(server);
+
+            // Reiniciar el estado de la interacción para asegurar que el pre-roll se muestre en el primer clic.
+            userInteractionInitiated = false; 
+            
+            // Asegurar que el poster esté visible al recargar el servidor
+            posterImage.classList.remove('hidden'); 
+            
+            // CLAVE: Asegurar que los controles estén visibles después de la carga para ver el botón de Play
+            playerContainer.classList.remove('controls-hidden');
+
+            video.removeAttribute('src');
+            // Necesario para resetear el estado y forzar la recarga
+            video.load(); 
+
+            if (server.type === 'm3u8' && Hls.isSupported()) {
+                // CARGA HLS (M3U8)
+                hlsInstance = new Hls();
+                hlsInstance.on(Hls.Events.MEDIA_ATTACHED, function () {
+                    hlsInstance.loadSource(server.url);
+                });
+
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+                    // ⭐️ Usar la nueva función de carga para MP4 y HLS ⭐️
+                    onVideoLoaded(server, currentTime, wasPlaying); 
+                });
+                
+                hlsInstance.on(Hls.Events.ERROR, function (event, data) {
+                    console.error("HLS Error:", data.details);
+                    // Ocultar carga si falla
+                    loadingOverlay.classList.remove('visible');
+                });
+
+                hlsInstance.attachMedia(video);
+                
+            } else {
+                // CARGA MP4
+                video.src = server.url;
+                video.load();
+                
+                const handleLoadedData = () => {
+                    // ⭐️ Usar la nueva función de carga para MP4 y HLS ⭐️
+                    onVideoLoaded(server, currentTime, wasPlaying);
+                    video.removeEventListener('loadeddata', handleLoadedData);
+                };
+                
+                video.addEventListener('loadeddata', handleLoadedData);
+                
+                // Añadir un listener para errores de carga MP4
+                video.addEventListener('error', (e) => {
+                    console.error("Error al cargar MP4:", e);
+                    loadingOverlay.classList.remove('visible');
+                    alert("Error al cargar el video en el servidor: " + server.name);
+                }, { once: true });
+            }
+            serverMenu.classList.remove('visible'); 
+        }
+        
+        // ------------------------------------------------------------------
+        // INICIALIZACIÓN Y EVENTOS DEL REPRODUCTOR
+        // ------------------------------------------------------------------
+
+        function initializeServerButtons() {
+            serverOptionsContainer.innerHTML = ''; 
+
+            SERVERS.forEach(server => {
+                const button = document.createElement('button');
+                button.classList.add('server-btn');
+                button.setAttribute('id', `btn-${server.id}`);
+                button.textContent = server.name;
+                button.dataset.serverId = server.id;
+
+                button.addEventListener('click', () => {
+                    loadServer(server.id);
+                });
+                
+                serverOptionsContainer.appendChild(button);
+            });
+        }
+        
+        initializeServerButtons(); 
+
+        // Eventos del menú de servidores
+        settingsBtn.addEventListener('click', (e) => {
+            if (isAdPlaying) return; 
+            e.stopPropagation(); 
+            serverMenu.classList.toggle('visible');
+        });
+        serverMenu.addEventListener('click', (e) => { e.stopPropagation(); });
+        serverMenu.addEventListener('touchstart', (e) => { e.stopPropagation(); });
+
+        loadServer(currentServerId); // INICIA LA CARGA Y EL FLUJO DE ADS
+
+        // ⭐️ CLAVE: Evento para el botón de descarga ⭐️
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!downloadBtn.classList.contains('disabled') && !isAdPlaying) {
+                startDownload();
+            } else if (isAdPlaying) {
+                 alert('No se puede descargar durante la reproducción de anuncios.');
+            } else {
+                 alert('La descarga solo está disponible para servidores MP4.');
+            }
+        });
+
+        // Eventos de estado de video
+        // ⭐️ CORRECCIÓN CLAVE: Usar 'waiting' y 'playing' para controlar el overlay de carga. ⭐️
+        video.addEventListener('waiting', () => {
+             // Solo mostrar el overlay si no estamos buscando intencionalmente
+             if (!video.seeking && !isAdPlaying) {
+                 loadingOverlay.classList.add('visible');
+             }
+        });
+
+        video.addEventListener('playing', () => {
+             loadingOverlay.classList.remove('visible');
+        });
+
+        video.addEventListener('seeking', () => {
+             if (!isDragging && !isAdPlaying) {
+                 loadingOverlay.classList.add('visible');
+             }
+        });
+
+        video.addEventListener('seeked', () => {
+             loadingOverlay.classList.remove('visible');
+             // Si pausamos antes de buscar, el play/pause event se encarga del poster
+        });
+
+        // Detener propagación en controles para evitar conflictos
+        allControls.forEach(control => {
+            control.addEventListener('click', (e) => {
+                if (isAdPlaying) return;
+                e.stopPropagation();
+            });
+            control.addEventListener('touchend', (e) => {
+                if (isAdPlaying) return;
+                e.stopPropagation();
+            });
+        });
+
+        // Alternancia de controles
+        playerContainer.addEventListener('click', () => {
+            if (isAdPlaying) return; 
+
+            if (serverMenu.classList.contains('visible')) { 
+                serverMenu.classList.remove('visible');
+                return; 
+            }
+            
+            // Si el video está cargado y pausado, el clic es para hacer Play
+            if (video.paused && !userInteractionInitiated) {
+                togglePlayPause(); // Intenta iniciar la reproducción/anuncio
+                return;
+            }
+
+            // Muestra/Oculta los controles después del inicio
+            playerContainer.classList.toggle('controls-hidden');
+
+            const isHidden = playerContainer.classList.contains('controls-hidden');
+            
+            if (isHidden) {
+                if (!video.paused) { 
+                    playerContainer.style.cursor = 'none';
+                }
+            } else {
+                playerContainer.style.cursor = 'default';
+                clearTimeout(controlsTimeout);
+            }
+        });
+        
+        playerContainer.addEventListener('touchend', (e) => {
+             if (isDragging || isAdPlaying) return; 
+
+             if (serverMenu.classList.contains('visible')) {
+                serverMenu.classList.remove('visible');
+                return;
+             }
+             
+             // Si el video está cargado y pausado, el toque es para hacer Play
+             if (video.paused && !userInteractionInitiated) {
+                 e.preventDefault();
+                 togglePlayPause();
+                 return;
+             }
+
+
+             e.preventDefault(); 
+             
+             playerContainer.classList.toggle('controls-hidden');
+
+             const isHidden = playerContainer.classList.contains('controls-hidden');
+            
+             if (!isHidden) {
+                 clearTimeout(controlsTimeout);
+             }
+        }, { passive: false });
+
+        // Click en el botón central de Play/Pause
+        playPauseBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            togglePlayPause();
+        });
+
+
+        video.addEventListener('play', () => {
+            playPauseIcon.textContent = 'pause';
+            playPauseBtn.classList.remove('is-paused');
+            playerContainer.classList.add('playing');
+            loadingOverlay.classList.remove('visible'); // Asegurar que se oculte al iniciar
+            // ⭐️ OCULTAR EL POSTER AL INICIAR LA REPRODUCCIÓN ⭐️
+            posterImage.classList.add('hidden'); 
+        });
+
+        video.addEventListener('pause', () => {
+            if (isDragging || isAdPlaying) return; 
+
+            playPauseIcon.textContent = 'play_arrow';
+            playPauseBtn.classList.add('is-paused');
+            playerContainer.classList.remove('playing');
+            
+            // ⭐️ Aseguramos que los controles se vean al pausar para mostrar el botón ⭐️
+            playerContainer.classList.remove('controls-hidden');
+            playerContainer.style.cursor = 'default';
+            
+            // ⭐️ MOSTRAR EL POSTER SI SE PAUSA Y NO HAY AD ⭐️
+            if (!isAdPlaying) {
+                posterImage.classList.remove('hidden');
+            }
+        });
+
+        // Avance y Retroceso de 10 segundos 
+        seekBackBtn.addEventListener('click', (e) => {
+            if (isAdPlaying) return; 
+            e.stopPropagation(); 
+            video.currentTime = Math.max(0, video.currentTime - 10);
+        });
+
+        seekForwardBtn.addEventListener('click', (e) => {
+            if (isAdPlaying) return; 
+            e.stopPropagation(); 
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        });
+
+        // Actualización de la Barra de Progreso y Tiempo (Normal) 
+        video.addEventListener('timeupdate', () => {
+            const duration = video.duration;
+            const currentTime = video.currentTime;
+            
+            if (isAdPlaying) return; 
+
+            if (duration) {
+                const percent = (currentTime / duration) * 100;
+                if (!isDragging) { 
+                    progressBar.style.width = percent + '%';
+                }
+                currentTimeDisplay.textContent = formatTime(currentTime);
+                const remainingTime = duration - currentTime;
+                remainingTimeDisplay.textContent = '-' + formatTime(remainingTime);
+            }
+            
+            // Redimensionar el Ad Manager si está activo
+            if (adsManager && isAdPlaying) {
+                adsManager.resize(playerContainer.offsetWidth, playerContainer.offsetHeight, document.fullscreenElement ? google.ima.ViewMode.FULLSCREEN : google.ima.ViewMode.NORMAL);
+            }
+        });
+        
+        // ------------------------------------------------------------------
+        // LÓGICA DE ARRASTRE (SCRUBBING)
+        // ------------------------------------------------------------------
+
+        // Iniciar arrastre (Ratón/Táctil)
+        const startScrub = (e) => {
+            if (isAdPlaying) return; 
+
+            e.preventDefault();
+            e.stopPropagation(); 
+            isDragging = true;
+            wasPlayingBeforeDrag = !video.paused;
+            scrub(e); 
+            video.pause(); 
+            loadingOverlay.classList.add('visible'); // Mostrar carga mientras arrastramos
+        };
+        progressBarContainer.addEventListener('mousedown', startScrub);
+        progressBarContainer.addEventListener('touchstart', startScrub);
+
+        // Mover el ratón/dedo (ACTUALIZACIÓN EN TIEMPO REAL)
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                e.preventDefault(); 
+                scrub(e); 
+            }
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                scrub(e); 
+            }
+        }, { passive: false });
+
+        // Detener arrastre (Ratón/Táctil)
+        const stopScrub = () => {
+            if (isDragging) {
+                isDragging = false;
+                loadingOverlay.classList.remove('visible'); // Ocultar carga al soltar
+                
+                if (wasPlayingBeforeDrag) {
+                    video.play(); 
+                }
+            }
+        };
+        document.addEventListener('mouseup', stopScrub);
+        document.addEventListener('touchend', stopScrub);
+        
+        // ------------------------------------------------------------------
+        // FIN LÓGICA DE ARRASTRE
+        // ------------------------------------------------------------------
+        
+
+        // Fullscreen 
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                playerContainer.requestFullscreen();
+            }
+        });
+
+        // Mostrar/Ocultar controles con movimiento del ratón 
+        playerContainer.addEventListener('mousemove', () => {
+            if (isAdPlaying) return; 
+
+            if (playerContainer.classList.contains('controls-hidden')) {
+                playerContainer.classList.remove('controls-hidden');
+                playerContainer.style.cursor = 'default';
+            }
+            
+            clearTimeout(controlsTimeout);
+            
+            controlsTimeout = setTimeout(() => {
+                if (!video.paused) {
+                    if (!serverMenu.classList.contains('visible')) {
+                        playerContainer.classList.add('controls-hidden');
+                        playerContainer.style.cursor = 'none';
+                    }
+                }
+            }, 3000);
+        });
+        
+        // Ocultar el cursor al salir
+        playerContainer.addEventListener('mouseleave', () => {
+            if (!video.paused && playerContainer.classList.contains('controls-hidden')) {
+                playerContainer.style.cursor = 'none';
+            }
+        });
+
+        // Inicialización de GOOGLE CAST 
+        window['__onGCastApiAvailable'] = function(isAvailable) {
+            if (isAvailable) {
+                cast.framework.CastContext.getInstance().setOptions({
+                    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID, 
+                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+                });
+                castButton.style.display = 'block';
+            } else {
+                 castButton.style.display = 'none';
+                 document.getElementById('caption-btn').style.display = 'block';
+            }
+        };
+
+    </script>
+</body>
+</html>
