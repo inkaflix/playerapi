@@ -8,7 +8,7 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
-  /* ====== RESET & BASE ====== */
+  /* ====== CSS (Mismo estilo anterior, solo renombré .corner-star) ====== */
   :root{
     --bg:#070707;
     --card:#0f0f10;
@@ -16,8 +16,6 @@
     --muted:#9b9b9b;
     --yellow:#ffd400;
     --radius:12px;
-    --focus-ring: 3px solid #fff; /* Anillo de enfoque para la TV */
-    --focus-bg-color: rgba(255, 255, 255, 0.1);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -30,31 +28,23 @@
     -moz-osx-font-smoothing:grayscale;
     line-height:1.2;
   }
-  /* Estilo general para elementos enfocables */
   [tabindex="0"]:focus, .focused {
     outline: none !important;
-    /* Box-shadow más grande para que sea visible en TV */
-    box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px rgba(255, 255, 255, 0.2); 
+    box-shadow: 0 0 0 4px var(--accent), 0 0 0 8px rgba(255, 255, 255, 0.2);
     transition: box-shadow 0.2s ease-in-out, transform 0.1s ease;
     transform: scale(1.02);
     z-index: 100;
   }
-  
-  /* Reset de escala para elementos que no queremos que se muevan (como la barra superior y slide del héroe) */
-  header [tabindex="0"]:focus, header .focused,
-  .hero-slide-link:focus, .hero-slide-link.focused {
+  header [tabindex="0"]:focus, header .focused {
     transform: none; 
     box-shadow: 0 0 0 4px var(--accent) !important;
   }
-
-  /* Estilo específico para el foco en el INPUT para que se vea diferente al botón */
-  #searchInput:focus, #searchInput.focused {
-    box-shadow: 0 0 0 2px var(--accent) !important;
-    border-color: var(--accent) !important;
-    transform: none;
+  .buscador-flotante.activo ~ .bottom-nav a.focused {
+      box-shadow: none !important;
+      transform: none !important;
   }
 
-  /* ====== HEADER MODIFICADO (Contiene ahora la navegación) ====== */
+  /* HEADER */
   header.app-header{
     height:56px;
     background:#0b0b0b;
@@ -75,8 +65,6 @@
     padding: 0 10px 0 0;
   }
   .brand i{vertical-align:middle;margin-right:8px}
-
-  /* ESTILOS PARA LA NAV DE LA CABECERA */
   .header-nav {
       display: flex;
       gap: 12px;
@@ -94,214 +82,70 @@
       border: 1px solid rgba(255, 255, 255, 0.03);
       transition: all 0.2s;
   }
-  .header-nav a:hover {
-      background: rgba(255, 255, 255, 0.1);
-  }
 
-  /* ====== HERO / TOP SLIDER ====== */
-  .hero {
-    width:100%;
-    padding:12px;
-  }
-  .hero-carousel{
-    position:relative;
-    border-radius:16px;
-    overflow:hidden;
-    background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.6));
-  }
-  /* Hace el slide completo enfocable */
-  .hero-slide-link { 
-    display: block;
-    position:relative;
-    color: inherit;
-    text-decoration: none;
-  }
-  .hero-slide-link img{
-    width:100%;
-    height:240px;
-    object-fit:cover;
-    display:block;
-    filter:brightness(0.75);
-  }
-  
-  .hero-slide{
-    display:none;
-  }
+  /* HERO */
+  .hero {width:100%;padding:12px;}
+  .hero-carousel{position:relative;border-radius:16px;overflow:hidden;background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.6));}
+  .hero-slide-link { display: block; position:relative; color: inherit; text-decoration: none;}
+  .hero-slide-link img{width:100%;height:240px;object-fit:cover;display:block;filter:brightness(0.75);}
+  .hero-slide-link:focus, .hero-slide-link.focused {transform: none; box-shadow: 0 0 0 6px var(--accent) !important;}
+  .hero-slide{display:none;}
   .hero-slide.active{display:block}
-
-  .hero-overlay{
-    position:absolute;
-    left:18px;
-    bottom:18px;
-    color:#fff;
-    right:18px;
-    display:flex;
-    align-items:flex-end;
-    gap:12px;
-  }
-  .hero-meta{
-    background:linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25));
-    padding:10px 14px;
-    border-radius:8px;
-    width:calc(100% - 40px);
-  }
-  .hero-meta .label{
-    display:inline-block;
-    background:var(--accent);
-    color:#fff;
-    padding:5px 8px;
-    border-radius:6px;
-    font-size:12px;
-    font-weight:700;
-    margin-bottom:6px;
-  }
-  .hero-meta h3{margin:0;font-size:18px}
-  .hero-meta p{margin:4px 0 0;color:var(--muted);font-size:13px}
-
-  .hero-dots{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    padding:10px 0;
-  }
-  .hero-dots button{
-    width:12px;height:6px;border-radius:6px;border:0;background:rgba(255,255,255,0.12);
-    cursor:pointer;
-    padding:0;
-  }
+  .hero-overlay{position:absolute;left:18px;bottom:18px;color:#fff;right:18px;display:flex;align-items:flex-end;gap:12px;}
+  .hero-meta{background:linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25));padding:10px 14px;border-radius:8px;width:calc(100% - 40px);}
+  .hero-meta .label{display:inline-block;background:var(--accent);color:#fff;padding:5px 8px;border-radius:6px;font-size:12px;font-weight:700;margin-bottom:6px;}
+  .hero-dots{display:flex;justify-content:center;gap:8px;padding:10px 0;}
+  .hero-dots button{width:12px;height:6px;border-radius:6px;border:0;background:rgba(255,255,255,0.12);cursor:pointer;padding:0;}
   .hero-dots button.active{background:#fff;width:24px;border-radius:6px}
 
-  /* ====== SECCIONES ====== */
+  /* SECCIONES */
   main{padding:14px}
-  .section{
-    margin:12px 0 22px;
-  }
-  .section-header{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:10px;
-  }
-  .accent-line{
-    width:4px;height:22px;background:var(--accent);border-radius:6px;
-  }
-  .section-title{
-    font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;
-  }
-  .section-actions{
-    margin-left:auto;display:flex;align-items:center;gap:8px;
-  }
-  .btn-small{
-    background:var(--accent);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;border:0;cursor:pointer;
-    text-decoration:none;
-  }
-  .nav-circle{
-    width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0b0b0b;
-  }
+  .section{margin:12px 0 22px;}
+  .section-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .accent-line{width:4px;height:22px;background:var(--accent);border-radius:6px;}
+  .section-title{font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;}
+  .section-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .btn-small{background:var(--accent);color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;border:0;cursor:pointer;text-decoration:none;}
+  .nav-circle{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0b0b0b;}
 
-  /* carousel horizontal (cards) */
-  .carousel-wrap{position:relative}
-  .carousel{
-    display:flex;
-    gap:10px;
-    overflow-x:auto;
-    padding:8px 2px;
-    scroll-behavior:smooth;
-  }
+  /* CAROUSEL & CARDS */
+  .carousel{display:flex;gap:10px;overflow-x:auto;padding:8px 2px;scroll-behavior:smooth;}
   .carousel::-webkit-scrollbar{height:8px}
   .carousel::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:8px}
-  .card{
-    min-width:140px;
-    max-width:140px;
-    background:var(--card);
-    border-radius:12px;
-    overflow:hidden;
-    text-decoration:none;
-    color:inherit;
-    position:relative;
-    box-shadow:0 6px 18px rgba(0,0,0,0.6);
-    display:block;
-  }
-  .card img{
-    width:100%;
-    height:170px;
-    object-fit:cover;
-    display:block;
-  }
-  .card .card-body{
-    padding:8px;
-    font-size:13px;
-  }
-  .card .title{
-    display:block;
-    font-weight:700;
-    font-size:13px;
-    line-height:1.1;
-    height:34px;
-    overflow:hidden;
-  }
+  .card{min-width:140px;max-width:140px;background:var(--card);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;position:relative;box-shadow:0 6px 18px rgba(0,0,0,0.6);display:block;}
+  .card img{width:100%;height:170px;object-fit:cover;display:block;}
+  .card .card-body{padding:8px;font-size:13px;}
+  .card .title{display:block;font-weight:700;font-size:13px;line-height:1.1;height:34px;overflow:hidden;}
   .card .meta{color:var(--muted);font-size:12px;margin-top:6px}
-
-  /* rating badge */
-  .badge-rating{
-    position:absolute;
-    right:8px;top:8px;
-    background:rgba(0,0,0,0.6);
-    padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.04);
-    display:flex;align-items:center;gap:6px;
-  }
+  .badge-rating{position:absolute;right:8px;top:8px;background:rgba(0,0,0,0.6);padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:6px;}
   .badge-rating i{color:var(--yellow);}
-
-  /* small star icon for some cards corner */
-  .corner-star{
-    position:absolute;left:8px;top:8px;background:rgba(0,0,0,0.6);padding:6px;border-radius:8px;
+  /* Cambio de nombre: .corner-calidad es el nuevo .corner-star */
+  .corner-calidad{
+    position:absolute;left:8px;top:8px;
+    background:var(--accent); /* Color distintivo para calidad */
+    color: #fff;
+    padding:6px 8px;border-radius:8px;
+    font-weight: 700;
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,0.04);
   }
+  .loading-indicator {text-align: center;padding: 20px;color: var(--muted);}
 
-  /* ====== BUSCADOR FLOTANTE ====== */
-  .buscador-flotante{
-    position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:150;
-  }
+  /* BUSCADOR (oculto para brevedad) */
+  .buscador-flotante{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:150;}
   .buscador-flotante.activo{display:flex}
-  .buscador-card{
-    width:94%;max-width:720px;background:#0c0c0c;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
-  }
+  .buscador-card{width:94%;max-width:720px;background:#0c0c0c;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);}
   .search-row{display:flex;gap:8px}
-  .search-row input{
-    flex:1;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,0.03);
-    background:transparent;
-    color:#fff;
-    font-size:15px
-  }
-  .search-row button{
-    padding:10px 12px;
-    border-radius:10px;
-    border:0;
-    background:var(--accent);
-    color:#fff;
-    font-weight:700;
-    cursor:pointer
-  }
+  .search-row input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff;font-size:15px}
+  .search-row button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
   .search-results{margin-top:12px;display:grid;grid-template-columns:1fr;gap:8px;max-height:360px;overflow:auto}
   .result-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);text-decoration:none;color:inherit}
   .result-item img{width:52px;height:72px;object-fit:cover;border-radius:6px}
-  .no-result{color:var(--muted);text-align:center;padding:12px;font-style:italic}
-  /* Estilo de enfoque para resultados de búsqueda */
-  .result-item:focus, .result-item.focused {
-    outline: none;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 0 2px var(--accent) !important;
-    transform: scale(1.01);
-  }
-
-  /* ====== RESPONSIVE ====== */
-  @media(min-width:800px){
-    .hero-slide-link img{height:420px}
-    .card{min-width:170px;max-width:170px}
-    .card img{height:220px}
-  }
+  .no-result{color:var(--accent);text-align:center;padding:12px}
+  .result-item:focus, .result-item.focused {outline: none;background: rgba(255, 255, 255, 0.1);box-shadow: 0 0 0 2px var(--accent) !important;transform: scale(1.01);}
+  
+  /* RESPONSIVE */
+  @media(min-width:800px){.hero-slide-link img{height:420px}.card{min-width:170px;max-width:170px}.card img{height:220px}}
 </style>
 </head>
 <body data-focus-group="body">
@@ -320,32 +164,35 @@
 
   <section class="hero">
     <div class="hero-carousel" id="heroCarousel">
+      <div class="loading-indicator">Cargando contenido destacado...</div>
       </div>
 
     <div class="hero-dots" id="heroDots" data-focus-group="dots"></div>
   </section>
 
   <main>
-    <section class="section" data-section-id="ultimosAportes">
+    <section class="section">
       <div class="section-header">
         <div class="accent-line"></div>
-        <div class="section-title">⭐ MANGAS Y MANHWAS RECIENTE ⭐</div>
-        <div class="section-actions" data-focus-group="ultimosAportes-nav">
-          <a href="./pagues/pague_mangas_y_manhwas_reciente/pague_1.html" class="btn-small" tabindex="0">VER TODO</a>
-          <div class="nav-circle" data-target="ultimosAportes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
-          <div class="nav-circle" data-target="ultimosAportes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
+        <div class="section-title">🎞️ Películas Recientes (TMDB)</div>
+        <div class="section-actions" data-focus-group="peliculasRecientes-nav">
+          <a href="#" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="peliculasRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="peliculasRecientes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
         </div>
       </div>
 
       <div class="carousel-wrap">
-        <div class="carousel" id="ultimosAportes" data-focus-group="ultimosAportes-carousel"></div>
+        <div class="carousel" id="peliculasRecientes" data-focus-group="peliculasRecientes-carousel">
+            <div class="loading-indicator">Cargando Películas Recientes...</div>
+        </div>
       </div>
     </section>
 
-    <section class="section" data-section-id="seriesRecientes">
+    <section class="section">
       <div class="section-header">
         <div class="accent-line"></div>
-        <div class="section-title">⭐ COMICS ⭐</div>
+        <div class="section-title">📺 Series Recientes (TMDB)</div>
         <div class="section-actions" data-focus-group="seriesRecientes-nav">
           <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
           <div class="nav-circle" data-target="seriesRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
@@ -354,14 +201,16 @@
       </div>
 
       <div class="carousel-wrap">
-        <div class="carousel" id="seriesRecientes" data-focus-group="seriesRecientes-carousel"></div>
+        <div class="carousel" id="seriesRecientes" data-focus-group="seriesRecientes-carousel">
+            <div class="loading-indicator">Cargando Series Recientes...</div>
+        </div>
       </div>
     </section>
 
-    <section class="section" data-section-id="animesRecientes">
+    <section class="section">
       <div class="section-header">
         <div class="accent-line"></div>
-        <div class="section-title">⭐ ANIME RECIENTE ⭐</div>
+        <div class="section-title">⚔️ Animes Recientes (TMDB)</div>
         <div class="section-actions" data-focus-group="animesRecientes-nav">
           <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
           <div class="nav-circle" data-target="animesRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
@@ -370,23 +219,45 @@
       </div>
 
       <div class="carousel-wrap">
-        <div class="carousel" id="animesRecientes" data-focus-group="animesRecientes-carousel"></div>
+        <div class="carousel" id="animesRecientes" data-focus-group="animesRecientes-carousel">
+            <div class="loading-indicator">Cargando Animes Recientes...</div>
+        </div>
       </div>
     </section>
 
-    <section class="section" data-section-id="pelisRecientes">
+    <section class="section">
       <div class="section-header">
         <div class="accent-line"></div>
-        <div class="section-title">⭐ LOS MEJOS H RECOMENDADOS ⭐</div>
-        <div class="section-actions" data-focus-group="pelisRecientes-nav">
-          <a href="./pagues/pagues_mangas_h/pague_1.html" class="btn-small" tabindex="0">VER TODO</a>
-          <div class="nav-circle" data-target="pelisRecientes" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
-          <div class="nav-circle" data-target="pelisRecientes" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
+        <div class="section-title">👻 Películas de Terror (TMDB)</div>
+        <div class="section-actions" data-focus-group="peliculasTerror-nav">
+          <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="peliculasTerror" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="peliculasTerror" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
         </div>
       </div>
 
       <div class="carousel-wrap">
-        <div class="carousel" id="pelisRecientes" data-focus-group="pelisRecientes-carousel"></div>
+        <div class="carousel" id="peliculasTerror" data-focus-group="peliculasTerror-carousel">
+            <div class="loading-indicator">Cargando Películas de Terror...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div class="accent-line"></div>
+        <div class="section-title">⏱️ Series Cortas (TMDB)</div>
+        <div class="section-actions" data-focus-group="seriesCortas-nav">
+          <a href="TU_URL_AQUI" class="btn-small" tabindex="0">VER TODO</a>
+          <div class="nav-circle" data-target="seriesCortas" data-dir="prev" tabindex="0"><i data-lucide="chevron-left"></i></div>
+          <div class="nav-circle" data-target="seriesCortas" data-dir="next" tabindex="0"><i data-lucide="chevron-right"></i></div>
+        </div>
+      </div>
+
+      <div class="carousel-wrap">
+        <div class="carousel" id="seriesCortas" data-focus-group="seriesCortas-carousel">
+            <div class="loading-indicator">Cargando Series Cortas...</div>
+        </div>
       </div>
     </section>
   </main>
@@ -394,110 +265,200 @@
   <div class="buscador-flotante" id="searchModal" aria-hidden="true" data-focus-group="search-modal">
     <div class="buscador-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <strong>Buscar</strong>
+        <strong>Buscar en TMDB</strong>
         <button id="closeSearch" style="background:transparent;border:0;color:var(--muted);cursor:pointer" tabindex="0">Cerrar ✖</button>
       </div>
       <div class="search-row">
         <input id="searchInput" placeholder="Busca por título, ejemplo: Naruto, Disney..." tabindex="0" />
         <button id="searchClear" tabindex="0">Borrar</button>
       </div>
-      <div class="search-results" id="searchResults"></div>
+      <div class="search-results" id="searchResults"><div class="no-result">Escribe para empezar a buscar en TMDB...</div></div>
     </div>
   </div>
 
 <script>
 /* ==========================
-   DATOS (tu script original)
+   CONFIGURACIÓN TMDB
+   ========================== */
+const TMDB_API_KEY = '867b27ebb5a72c3f64ee67bc9dd7a794'; 
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w200'; 
+const TMDB_HERO_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w780'; 
+const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/140x170?text=No+Image';
+
+/* ==========================
+   DATOS LOCALES (USA SOLO IDs DE TMDB Y LA NUEVA PROPIEDAD 'calidad')
    ========================== */
 const data = { 
-  animesRecientes: [ //ANIME RECIENTE
-    { titulo: "Título Anime 1", imagen: "https://via.placeholder.com/140x170?text=Anime+1", url: "#" },
-    { titulo: "Título Anime 2", imagen: "https://via.placeholder.com/140x170?text=Anime+2", url: "#" },
-    { titulo: "Título Anime 3", imagen: "https://via.placeholder.com/140x170?text=Anime+3", url: "#" },
-    { titulo: "Título Anime 4", imagen: "https://via.placeholder.com/140x170?text=Anime+4", url: "#" }
-  ],
-  animesLatinos: [
-    { titulo: "Título Latino 1", imagen: "https://via.placeholder.com/140x170?text=Latino+1", url: "./mangas/caida-del-espacio.html", vistas: "Cap.1", fecha:"2024"  },
-    { titulo: "Título Latino 2", imagen: "https://via.placeholder.com/140x170?text=Latino+2", url: "#" , fecha:"2023"},
-    { titulo: "Título Latino 3", imagen: "https://via.placeholder.com/140x170?text=Latino+3", url: "#", fecha:"2023"},
-    { titulo: "Título Latino 4", imagen: "https://via.placeholder.com/140x170?text=Latino+4", url: "#" , fecha:"2024"}
-  ],
-  loMasVisto: [// COMICS
-    { titulo: "Título Comic 1", imagen: "https://via.placeholder.com/140x170?text=Comic+1", url: "#", vistas: "1", fecha:"Nov. 15, 2023" },
-    { titulo: "Título Comic 2", imagen: "https://via.placeholder.com/140x170?text=Comic+2", url: "#", vistas: "2", fecha:"Nov. 15, 2023" },
-    { titulo: "Título Comic 3", imagen: "https://via.placeholder.com/140x170?text=Comic+3", url: "#", vistas: "3", fecha:"Nov. 27, 2023" },
-    { titulo: "Título Comic 4", imagen: "https://via.placeholder.com/140x170?text=Comic+4", url: "#", vistas: "3", fecha:"2025"}
-  ],
-  ultimosAportes:[ // MANGAS Y MANHWAS RECIENTE
-    { titulo:"Título Manga 1: Ejemplo Largo para TV", imagen:"https://via.placeholder.com/140x170?text=Manga+1", url:"#", rating:8.9, fecha:"2025" },
-    { titulo:"Título Manga 2", imagen:"https://via.placeholder.com/140x170?text=Manga+2", url:"#", rating:5.6, fecha:"Nov. 15, 2023" },
-    { titulo:"Título Manga 3", imagen:"https://via.placeholder.com/140x170?text=Manga+3", url:"#", rating:6.2, fecha:"Nov. 27, 2023" },
-    { titulo:"Título Manga 4", imagen:"https://via.placeholder.com/140x170?text=Manga+4", url:"#", rating:8.0, fecha:"2024" },
-    { titulo:"Título Manga 5", imagen:"https://via.placeholder.com/140x170?text=Manga+5", url:"#", rating:7.5, fecha:"2025" }
-  ],
-  pelisRecientes:[ // H RECOMENDADOS
-    { titulo:"Mitarashi Kousei", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/mitarashi/Mitarashi_Kousei.html", rating:8.9, fecha:"Finalizado" },
-    { titulo:"Execio (Yukimaru )", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/yukimaru/Execion_yukimaru.html", rating:5.6, fecha:"Finalizado" },
-    { titulo:"ToWer", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/tower/tower.html", rating:6.2, fecha:"Finalizado" },
-    { titulo:"ToWer 2", imagen:"https://via.placeholder.com/140x170?text=Latino+1", url:"./h/herem/herem.html", rating:6.2, fecha:"Finalizado" }
+  // Usa "tipo: 'movie'" para películas y "tipo: 'tv'" para series/animes
   
+  // 1. PELÍCULAS RECIENTES (Ejemplos de IDs de Películas)
+  peliculasRecientes: [ 
+    { tmdbId: 44896, tipo: 'movie', url: "https://raw.githack.com/inkaflix/playerapi/main/movie/44896.html", calidad: "1080p" }, // Rango
+    { tmdbId: 680, tipo: 'movie', url: "#", calidad: "1080p" }, // Pulp Fiction
+    { tmdbId: 101, tipo: 'movie', url: "#", calidad: "1080p" }, //Léon (Sin marcador de calidad)
+    { tmdbId: 155, tipo: 'movie', url: "#", calidad: "1080p" },  // The Dark Knight
+  ],
+  
+  // 2. SERIES RECIENTES (Ejemplos de IDs de Series)
+  seriesRecientes:[ 
+    { tmdbId: 1396, tipo: 'tv', url: "#", calidad: "1080p" }, // Breaking Bad
+    { tmdbId: 82856, tipo: 'tv', url: "#", calidad: "1080p" },
+    { tmdbId: 60625, tipo: 'tv', url: "#", calidad: "1080p" },  // Rick and Morty
+  ],
+
+  // 3. ANIMES RECIENTES (Ejemplos de IDs de Anime, tratados como series 'tv')
+  animesRecientes:[
+    { tmdbId: 69050, tipo: 'tv', url: "#", calidad: "1080p" }, // Attack on Titan
+    { tmdbId: 31911, tipo: 'tv', url: "#", calidad: "1080p" }, // Death Note
+    { tmdbId: 37853, tipo: 'tv', url: "#", calidad: "1080p" }, // One Punch Man
+  ],
+
+  // 4. PELÍCULAS DE TERROR (Ejemplos de IDs de Películas de Terror)
+  peliculasTerror:[
+    { tmdbId: 539, tipo: 'movie', url: "#", calidad: "1080p" }, // Psycho
+    { tmdbId: 185, tipo: 'movie', url: "#", calidad: "1080p" }, // Jaws
+    { tmdbId: 110, tipo: 'movie', url: "#", calidad: "1080p" }, // IT (1990)
+  ],
+
+  // 5. SERIES CORTAS (Ejemplos de IDs de Series con menos episodios/temporadas)
+  seriesCortas:[
+    { tmdbId: 180551, tipo: 'tv', url: "#", calidad: "1080p" }, // Obi-Wan Kenobi
+    { tmdbId: 92749, tipo: 'tv' , url: "#", calidad: "1080p" },  // The Queen's Gambit
+    { tmdbId: 63842, tipo: 'tv', url: "#", calidad: "1080p" }   // Stranger Things (relativamente corta)
   ]
 };
 
 /* ==========================
-   RENDER HERO 
+   MAPEO Y UTILIDADES (Se mantienen las funciones clave)
    ========================== */
-const heroItems = [
-  {
-    titulo: "Caida del espacio",
-    imagen: "https://static.qqtoon.com/common/e0eda9a1803d40d4816b6930047c0b7d1742291180104.jpg?x-oss-process=image/resize,w_800,m_lfit/quality,q_75/format,jpg",
-    tipo: "Manhwua",
-    fecha: "2025",
-    url: "#slide1"
-  },
-  {
-    titulo: "Otra Película Destacada Más Larga de la Cuenta",
-    imagen: "https://raw.githubusercontent.com/inkaflix/API/main/imagenotfound.jpg",
-    tipo: "PELÍCULA",
-    fecha: "2023",
-    url: "#slide2"
-  }
-];
 
-const heroCarousel = document.getElementById('heroCarousel');
-const heroDots = document.getElementById('heroDots');
-let heroIndex = 0;
-
-function buildHero(){
-  heroCarousel.innerHTML = '';
-  heroDots.innerHTML = '';
-  heroItems.forEach((h, idx) => {
-    const slide = document.createElement('div');
-    slide.className = 'hero-slide' + (idx===0 ? ' active' : '');
+async function fetchTMDBDetails(item) {
+    if (!item.tmdbId || !item.tipo) {
+        return item; 
+    }
     
-    // Hacemos el slide completo enfocable con tabindex="0"
-    slide.innerHTML = `
-      <a href="${h.url}" class="hero-slide-link" tabindex="${idx===0 ? '0' : '-1'}" data-focus-group="hero-slide">
-        <img src="${h.imagen}" alt="${escapeHtml(h.titulo)}" loading="lazy">
-        <div class="hero-overlay">
-          <div class="hero-meta">
-            <div class="label">${h.tipo}</div>
-            <h3>${h.titulo}</h3>
-            <p>${h.fecha}</p>
-          </div>
-        </div>
-      </a>
-    `;
-    heroCarousel.appendChild(slide);
+    const endpoint = `${item.tipo}/${item.tmdbId}`;
+    const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&language=es-MX`;
+    
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`TMDB ID ${item.tmdbId} no encontrado`);
+        const tmdbData = await res.json();
+        
+        const isMovie = item.tipo === 'movie';
+        const title = tmdbData.title || tmdbData.name || 'Título Desconocido';
+        const releaseDate = tmdbData.release_date || tmdbData.first_air_date;
+        const type = isMovie ? 'Película' : 'Serie';
+        const rating = tmdbData.vote_average ? parseFloat(tmdbData.vote_average).toFixed(1) : null;
+        
+        const mappedItem = {
+            id: tmdbData.id,
+            titulo: title,
+            imagen: tmdbData.poster_path ? `${TMDB_IMAGE_BASE_URL}${tmdbData.poster_path}` : DEFAULT_IMAGE_URL,
+            url: `/detalle/${type.toLowerCase()}/${tmdbData.id}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-*|-*$/g, '')}.html`, 
+            rating: rating,
+            fecha: releaseDate ? releaseDate.substring(0, 4) : 'N/A',
+            tipo: type,
+            backdrop_path: tmdbData.backdrop_path 
+        };
 
-    // Hacemos los puntos enfocables
-    const dot = document.createElement('button');
-    dot.className = idx===0 ? 'active' : '';
-    dot.setAttribute('tabindex', '-1'); 
-    dot.setAttribute('data-dot-index', idx);
-    dot.addEventListener('click', ()=> { goToHero(idx); });
-    heroDots.appendChild(dot);
-  });
+        // Fusiona los datos de TMDB con tus datos locales (url y **calidad**)
+        return { 
+            ...mappedItem, 
+            url: item.url || mappedItem.url, 
+            calidad: item.calidad || null, // <-- USANDO 'calidad'
+        };
+
+    } catch(error) {
+        console.error(`Error al obtener detalles del ID ${item.tmdbId}:`, error);
+        return { 
+            titulo: `ID ${item.tmdbId} (Error)`, 
+            imagen: DEFAULT_IMAGE_URL, 
+            url: '#', 
+            fecha: 'Error API',
+            tipo: item.tipo === 'movie' ? 'Película' : 'Serie'
+        };
+    }
+}
+
+// Función que toma un array de IDs y los convierte en tarjetas
+async function fetchTMDBDetailsAndRender(localArray, selector){
+    const cont = document.getElementById(selector);
+    cont.innerHTML = ''; 
+    
+    const promises = localArray.map(async item => {
+        if (item.tmdbId) {
+            return await fetchTMDBDetails(item);
+        }
+        return item;
+    });
+
+    const results = await Promise.all(promises);
+    results.forEach(it => cont.appendChild(makeCard(it)));
+    lucide.createIcons();
+}
+
+// Renderiza una tarjeta
+function makeCard(item){
+  const a = document.createElement('a');
+  a.className = 'card';
+  a.href = item.url || '#';
+  a.setAttribute('tabindex', '0'); 
+  a.innerHTML = `
+    ${item.rating ? `<div class="badge-rating"><i data-lucide="star"></i> ${item.rating}</div>` : ''}
+    ${item.calidad ? `<div class="corner-calidad">${escapeHtml(item.calidad)}</div>` : ''} <img src="${item.imagen}" alt="${escapeHtml(item.titulo)}" loading="lazy" 
+         onerror="this.onerror=null; this.src='${DEFAULT_IMAGE_URL}'"/>
+    <div class="card-body">
+      <span class="title">${item.titulo}</span>
+      <div class="meta">${item.fecha || ''} ${item.tipo ? `| ${item.tipo}` : ''}</div>
+    </div>
+  `;
+  return a;
+}
+
+// Build Hero (Se mantiene)
+async function buildHero() {
+    heroItems = []; 
+    for(let i = 0; i < Math.min(data.peliculasRecientes.length, 5); i++) {
+        const item = await fetchTMDBDetails(data.peliculasRecientes[i]);
+        heroItems.push(item);
+    }
+    
+    heroCarousel.innerHTML = '';
+    heroDots.innerHTML = '';
+    if (heroItems.length === 0) return;
+
+    heroItems.forEach((h, idx) => {
+        const slide = document.createElement('div');
+        slide.className = 'hero-slide' + (idx===0 ? ' active' : '');
+        const heroImagePath = h.backdrop_path || h.poster_path;
+        const heroImageURL = heroImagePath ? `${TMDB_HERO_IMAGE_BASE_URL}${heroImagePath}` : DEFAULT_IMAGE_URL;
+        
+        slide.innerHTML = `
+          <a href="${h.url}" class="hero-slide-link" tabindex="${idx===0 ? '0' : '-1'}" data-focus-group="hero-slide">
+            <img src="${heroImageURL}" alt="${escapeHtml(h.titulo)}" loading="lazy" onerror="this.onerror=null; this.src='${DEFAULT_IMAGE_URL}'">
+            <div class="hero-overlay">
+              <div class="hero-meta">
+                <div class="label">${h.tipo} ${h.rating ? `| ${h.rating}⭐` : ''}</div>
+                <h3>${h.titulo}</h3>
+                <p>${h.fecha}</p>
+              </div>
+            </div>
+          </a>
+        `;
+        heroCarousel.appendChild(slide);
+
+        const dot = document.createElement('button');
+        dot.className = idx===0 ? 'active' : '';
+        dot.setAttribute('tabindex', '-1'); 
+        dot.setAttribute('data-dot-index', idx);
+        dot.addEventListener('click', ()=> { goToHero(idx); });
+        heroDots.appendChild(dot);
+    });
+    
+    if (heroItems.length > 0) {
+        startHeroAutoplay();
+    }
 }
 
 function goToHero(i){
@@ -505,62 +466,47 @@ function goToHero(i){
   const slideLinks = heroCarousel.querySelectorAll('.hero-slide-link');
   slides.forEach(s=>s.classList.remove('active'));
   slides[i].classList.add('active');
-  
-  // Actualizar tabindex para el enfoque del slide del héroe
   slideLinks.forEach((link, idx) => link.setAttribute('tabindex', idx === i ? '0' : '-1'));
-  
   [...heroDots.children].forEach((d,idx)=> d.classList.toggle('active', idx===i));
   heroIndex = i;
 }
+function nextHero(){ heroIndex = (heroIndex + 1) % heroItems.length; goToHero(heroIndex); }
+let heroAuto = null;
+function startHeroAutoplay() { if (heroAuto) clearInterval(heroAuto); heroAuto = setInterval(nextHero, 5000); }
 
-function nextHero(){
-  heroIndex = (heroIndex + 1) % heroItems.length;
-  goToHero(heroIndex);
-}
-
-buildHero();
-
-// Autoplay
-let heroAuto = setInterval(nextHero, 5000);
-heroCarousel.addEventListener('mouseenter', ()=> clearInterval(heroAuto));
-heroCarousel.addEventListener('mouseleave', ()=> heroAuto = setInterval(nextHero, 5000));
 
 /* ==========================
-   RENDER CARDS
+   CARGAR DATOS INICIALES (Llama a la función de TMDB-ID para todas las secciones)
    ========================== */
-function makeCard(item){
-  const a = document.createElement('a');
-  a.className = 'card';
-  a.href = item.url || '#';
-  // Añadimos tabindex="0" para que sea enfocable por el control remoto
-  a.setAttribute('tabindex', '0'); 
-  a.innerHTML = `
-    ${item.rating ? `<div class="badge-rating"><i data-lucide="star"></i> ${item.rating}</div>` : ''}
-    ${item.vistas ? `<div class="corner-star">${item.vistas}</div>` : ''}
-    <img src="${item.imagen}" alt="${escapeHtml(item.titulo)}" loading="lazy" />
-    <div class="card-body">
-      <span class="title">${item.titulo}</span>
-      <div class="meta">${item.fecha || ''}</div>
-    </div>
-  `;
-  return a;
+async function loadAllContent() {
+    // 1. Cargar Hero 
+    await buildHero();
+
+    // 2. Carrusel 1: Películas Recientes
+    await fetchTMDBDetailsAndRender(data.peliculasRecientes, 'peliculasRecientes');
+
+    // 3. Carrusel 2: Series Recientes
+    await fetchTMDBDetailsAndRender(data.seriesRecientes, 'seriesRecientes');
+
+    // 4. Carrusel 3: Animes Recientes
+    await fetchTMDBDetailsAndRender(data.animesRecientes, 'animesRecientes');
+    
+    // 5. Carrusel 4: Películas de Terror
+    await fetchTMDBDetailsAndRender(data.peliculasTerror, 'peliculasTerror'); 
+    
+    // 6. Carrusel 5: Series Cortas
+    await fetchTMDBDetailsAndRender(data.seriesCortas, 'seriesCortas'); 
+    
+    setInitialFocus(); 
 }
 
-function renderList(list, selector){
-  const cont = document.getElementById(selector);
-  cont.innerHTML = '';
-  list.forEach(it => cont.appendChild(makeCard(it)));
-}
+document.addEventListener('DOMContentLoaded', loadAllContent);
 
-/* Render inicial con tu JSON */
-renderList(data.ultimosAportes, 'ultimosAportes');
-renderList(data.loMasVisto, 'seriesRecientes');
-renderList(data.animesRecientes, 'animesRecientes');
-renderList(data.pelisRecientes, 'pelisRecientes');
 
 /* ==========================
-   NAV CIRCLES: prev/next scroll
+   NAV CIRCLES & BUSCADOR (Se mantienen)
    ========================== */
+
 document.querySelectorAll('.nav-circle').forEach(btn=>{
   btn.addEventListener('click', (e)=>{
     const target = btn.getAttribute('data-target');
@@ -572,9 +518,6 @@ document.querySelectorAll('.nav-circle').forEach(btn=>{
   });
 });
 
-/* ==========================
-   BUSCADOR (en tiempo real) - ADAPTADO PARA TV
-   ========================== */
 const openSearch = document.getElementById('openSearch');
 const searchModal = document.getElementById('searchModal');
 const closeSearch = document.getElementById('closeSearch');
@@ -582,148 +525,119 @@ const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 const searchClear = document.getElementById('searchClear');
 
-// Función que dispara la búsqueda y renderiza los resultados
-function executeSearch() {
-  const q = searchInput.value.trim().toLowerCase();
-  searchResults.innerHTML = '';
-  
-  if (!q) {
-    searchResults.innerHTML = '';
-    return;
-  }
-  
-  // Combinar todas las listas (incluyendo jsonExtra si se cargó)
-  const all = [
-    ...data.animesRecientes,
-    ...data.animesLatinos,
-    ...data.loMasVisto,
-    ...data.ultimosAportes,
-    ...data.pelisRecientes,
-    ...(window.jsonExtra || [])
-  ];
-  
-  // Filtrar resultados por título
-  const results = all.filter(item => item.titulo.toLowerCase().includes(q));
-  
-  if (results.length === 0) {
-    searchResults.innerHTML = `<div class="no-result">No se encontraron resultados.</div>`;
-    return;
-  }
-  
-  // Renderizar resultados
-  results.forEach(r => {
-    const a = document.createElement('a');
-    a.className = 'result-item';
-    a.href = r.url || '#';
-    // Hacemos los resultados enfocables
-    a.setAttribute('tabindex', '0'); 
-    a.innerHTML = `<img src="${r.imagen}"><div><strong style="font-size:14px">${r.titulo}</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">${r.fecha || ''}</div></div>`;
-    searchResults.appendChild(a);
-  });
-  
-  // Si hay resultados, intenta enfocar el primero si el foco actual es el input
-  if (results.length > 0 && currentFocus === searchInput) {
-      setTimeout(() => {
-          const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
-          if (firstResult) {
-              focusElement(firstResult);
-          }
-      }, 50);
-  }
-}
-
-// Evento: Abrir Modal
-openSearch.addEventListener('click', (e) => {
+openSearch.addEventListener('click', (e)=>{
   e.preventDefault();
   searchModal.classList.add('activo');
   searchModal.style.display = 'flex';
-  searchModal.setAttribute('aria-hidden', 'false');
+  searchModal.setAttribute('aria-hidden','false');
   searchInput.focus();
-  // El foco inicial será el input
-  focusElement(searchInput);
+  setInitialFocus(searchModal);
 });
 
-// Evento: Cerrar Modal
-closeSearch.addEventListener('click', () => {
-  closeModal();
-});
+closeSearch.addEventListener('click', ()=>{ closeModal(); });
 
-// Evento: Borrar Input
-searchClear.addEventListener('click', () => {
+searchClear.addEventListener('click', ()=>{
   searchInput.value = '';
-  searchResults.innerHTML = '';
+  searchResults.innerHTML = '<div class="no-result">Escribe para empezar a buscar en TMDB...</div>';
   searchInput.focus();
-  focusElement(searchInput); // Asegurar que el input mantenga el foco
 });
 
-function closeModal() {
+function closeModal(){
   searchModal.classList.remove('activo');
   searchModal.style.display = 'none';
-  searchModal.setAttribute('aria-hidden', 'true');
+  searchModal.setAttribute('aria-hidden','true');
   searchInput.value = '';
   searchResults.innerHTML = '';
-  // Restaurar el foco al botón de búsqueda en la cabecera
-  const focusablesInHeader = getFocusableElements(document.querySelector('.header-nav'));
-  const searchButton = focusablesInHeader.find(el => el.id === 'openSearch');
-  if (searchButton) {
+  const searchButton = document.getElementById('openSearch');
+  if(searchButton) {
       focusElement(searchButton);
   } else {
       setInitialFocus();
   }
 }
 
-// Evento clave: Búsqueda en tiempo real por 'input'
-searchInput.addEventListener('input', (e) => {
-  // Disparamos la función de búsqueda
-  executeSearch();
-});
-
-/* Utility: escape html (small) */
-function escapeHtml(s){
-  if(!s) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let searchTimeout;
+function fetchTMDBData(endpoint, query = ''){
+    const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_API_KEY}&language=es-MX${query}`;
+    return fetch(url)
+      .then(res => res.ok ? res.json() : Promise.reject(`API Error: ${res.status}`))
+      .then(data => data.results || [])
+      .catch(error => { console.error("Error al obtener datos de TMDB:", endpoint, error); return []; });
 }
 
+searchInput.addEventListener('input', (e)=>{
+    clearTimeout(searchTimeout);
+    const q = e.target.value.trim();
+    if (!q) {
+        searchResults.innerHTML = '<div class="no-result">Escribe para empezar a buscar en TMDB...</div>';
+        return;
+    }
+    searchResults.innerHTML = '<div class="loading-indicator">Buscando...</div>';
+    searchTimeout = setTimeout(async () => {
+        const tmdbResults = await fetchTMDBData('search/multi', `&query=${encodeURIComponent(q)}&include_adult=false`);
+        searchResults.innerHTML = '';
+        const filteredResults = tmdbResults
+            .filter(item => (item.media_type === 'movie' || item.media_type === 'tv') && item.poster_path)
+            .slice(0, 15); 
+
+        if(filteredResults.length === 0){
+            searchResults.innerHTML = `<div class="no-result">No se encontraron resultados para "${q}".</div>`;
+            return;
+        }
+        
+        filteredResults.forEach(r=>{
+            // Aquí usamos un mapeo simple para no llamar a fetchTMDBDetails
+            const title = r.title || r.name;
+            const type = r.media_type === 'movie' ? 'Película' : 'Serie';
+            const release = r.release_date || r.first_air_date;
+            const a = document.createElement('a');
+            a.className = 'result-item';
+            // Genera una URL por defecto similar a la de las tarjetas
+            const detailURL = `/detalle/${type.toLowerCase()}/${r.id}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-*|-*$/g, '')}.html`;
+            a.href = detailURL; 
+            a.setAttribute('tabindex', '0'); 
+            a.innerHTML = `<img src="${r.poster_path ? `${TMDB_IMAGE_BASE_URL}${r.poster_path}` : DEFAULT_IMAGE_URL}" alt="${escapeHtml(title)}">
+                           <div>
+                             <strong style="font-size:14px">${title}</strong>
+                             <div style="color:var(--muted);font-size:13px;margin-top:6px">
+                               ${type} (${(release || '').substring(0, 4) || 'N/A'})
+                             </div>
+                           </div>`;
+            searchResults.appendChild(a);
+        });
+        lucide.createIcons();
+    }, 500);
+});
+
+window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+function escapeHtml(s){if(!s) return '';return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+
 /* ==========================
-   LÓGICA DE NAVEGACIÓN D-PAD PARA ANDROID TV
+   LÓGICA DE NAVEGACIÓN D-PAD PARA ANDROID TV (Focus)
    ========================== */
-
 let currentFocus = null;
-
 function getFocusableElements(container = document) {
-  // Busca elementos con tabindex="0", enlaces, botones, inputs y tarjetas
   return Array.from(container.querySelectorAll('[tabindex="0"], a[href], button, input, .card'))
     .filter(el => {
       const style = window.getComputedStyle(el);
-      // Filtra elementos que no son visibles
       return style.display !== 'none' && style.visibility !== 'hidden' && !el.disabled && el.offsetParent !== null;
     })
     .map(el => {
-      // Si es parte de la tarjeta, asegúrate de devolver la tarjeta completa
       if(el.classList.contains('card')) return el.closest('.card');
       return el;
     })
-    .filter((v, i, a) => a.indexOf(v) === i); // Elimina duplicados
+    .filter((v, i, a) => a.indexOf(v) === i); 
 }
-
 function focusElement(el) {
-  if (currentFocus) {
-    currentFocus.classList.remove('focused');
-  }
+  if (currentFocus) { currentFocus.classList.remove('focused'); }
   if (el) {
-    el.focus(); 
-    el.classList.add('focused');
-    currentFocus = el;
-
-    // SCROLL VERTICAL: Centra el elemento en la vista vertical
+    el.focus(); el.classList.add('focused'); currentFocus = el;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // SCROLL HORIZONTAL: Mueve el carrusel horizontal si es necesario
     const carouselContainer = el.closest('.carousel');
     if (carouselContainer) {
         const elRect = el.getBoundingClientRect();
         const containerRect = carouselContainer.getBoundingClientRect();
-        
         if (elRect.left < containerRect.left) {
             carouselContainer.scrollBy({ left: elRect.left - containerRect.left - 10, behavior: 'smooth' });
         } else if (elRect.right > containerRect.right) {
@@ -732,43 +646,39 @@ function focusElement(el) {
     }
   }
 }
-
 function findNextFocus(direction, focusables) {
   if (!currentFocus) return focusables[0];
-
   const currentRect = currentFocus.getBoundingClientRect();
   let next = null;
   let minDistance = Infinity;
-
+  let currentFocusGroup = currentFocus.closest('[data-focus-group]') ? currentFocus.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
+  const isCarousel = currentFocus.closest('.carousel');
   focusables.forEach(el => {
     if (el === currentFocus) return;
-
     const rect = el.getBoundingClientRect();
     const isSameRow = (rect.top >= currentRect.top - 10 && rect.bottom <= currentRect.bottom + 10) ||
                       (currentRect.top >= rect.top - 10 && currentRect.bottom <= rect.bottom + 10);
-    const isSameColumn = (rect.left >= currentRect.left - 10 && rect.right <= currentRect.right + 10) ||
-                         (currentRect.left >= rect.left - 10 && currentRect.right <= rect.right + 10);
-
     let isCandidate = false;
+    let elFocusGroup = el.closest('[data-focus-group]') ? el.closest('[data-focus-group]').getAttribute('data-focus-group') : 'body';
+    const isDifferentGroup = currentFocusGroup !== elFocusGroup;
+    let priorityFactor = isDifferentGroup ? 1000 : 1; 
 
     switch (direction) {
       case 'left':
-        if (rect.right < currentRect.left - 5 && isSameRow) { isCandidate = true; }
+        if (rect.right < currentRect.left - 5 && isSameRow) { isCandidate = true; } else if (!isCarousel && rect.right < currentRect.left && isDifferentGroup && isSameRow) { isCandidate = true; }
         break;
       case 'right':
-        if (rect.left > currentRect.right + 5 && isSameRow) { isCandidate = true; }
+        if (rect.left > currentRect.right + 5 && isSameRow) { isCandidate = true; } else if (!isCarousel && rect.left > currentRect.right && isDifferentGroup && isSameRow) { isCandidate = true; }
         break;
       case 'up':
-        if (rect.bottom < currentRect.top - 5 && isSameColumn) { isCandidate = true; }
+        if (rect.bottom < currentRect.top - 5) { isCandidate = true; } else if (rect.bottom < currentRect.top && isDifferentGroup) { isCandidate = true; }
         break;
       case 'down':
-        if (rect.top > currentRect.bottom + 5 && isSameColumn) { isCandidate = true; }
+        if (rect.top > currentRect.bottom + 5) { isCandidate = true; } else if (rect.top > currentRect.bottom && isDifferentGroup) { isCandidate = true; }
         break;
     }
-
     if (isCandidate) {
-      // Distancia euclídea (Pythagoras)
-      const distance = Math.hypot(rect.left - currentRect.left, rect.top - currentRect.top); 
+      const distance = Math.hypot(rect.left - currentRect.left, rect.top - currentRect.top) * priorityFactor;
       if (distance < minDistance) {
         minDistance = distance;
         next = el;
@@ -776,198 +686,65 @@ function findNextFocus(direction, focusables) {
     }
   });
 
-  // Fallback: Si no hay un candidato directo en el eje, busca el más cercano en la dirección
   if (!next) { 
       let minGlobalDistance = Infinity;
       focusables.forEach(el => {
           if (el === currentFocus) return;
           const rect = el.getBoundingClientRect();
           let distance = 0;
-
           switch(direction) {
-            case 'left':
-              if (rect.right < currentRect.left) { distance = Math.hypot(currentRect.left - rect.right, currentRect.y - rect.y); } else { distance = Infinity; }
-              break;
-            case 'right':
-              if (rect.left > currentRect.right) { distance = Math.hypot(rect.left - currentRect.right, currentRect.y - rect.y); } else { distance = Infinity; }
-              break;
-            case 'up':
-              if (rect.bottom < currentRect.top) { distance = Math.hypot(currentRect.top - rect.bottom, currentRect.x - rect.x); } else { distance = Infinity; }
-              break;
-            case 'down':
-              if (rect.top > currentRect.bottom) { distance = Math.hypot(rect.top - currentRect.bottom, currentRect.x - rect.x); } else { distance = Infinity; }
-              break;
+            case 'left': if (rect.right < currentRect.left) { distance = Math.hypot(currentRect.left - rect.right, currentRect.y - rect.y); } else { distance = Infinity; } break;
+            case 'right': if (rect.left > currentRect.right) { distance = Math.hypot(rect.left - currentRect.right, currentRect.y - rect.y); } else { distance = Infinity; } break;
+            case 'up': if (rect.bottom < currentRect.top) { distance = Math.hypot(currentRect.top - rect.bottom, currentRect.x - rect.x); } else { distance = Infinity; } break;
+            case 'down': if (rect.top > currentRect.bottom) { distance = Math.hypot(rect.top - currentRect.bottom, currentRect.x - rect.x); } else { distance = Infinity; } break;
           }
-
           if (distance < minGlobalDistance) {
             minGlobalDistance = distance;
             next = el;
           }
       });
   }
-
-
   return next;
 }
-
 function setInitialFocus(container = document.body) {
     let focusables = getFocusableElements(container);
-    // Intentar enfocar el primer elemento de la barra de navegación superior
-    const headerNav = document.querySelector('.header-nav a[tabindex="0"]');
-    if (headerNav) {
-        focusElement(headerNav);
-    } else if (focusables.length > 0) {
+    if (focusables.length > 0) {
         focusElement(focusables[0]);
     }
 }
-
-
-window.addEventListener('load', () => {
-    setInitialFocus(); 
-});
-
-
-// Manejar las teclas del D-Pad
 window.addEventListener('keydown', (e) => {
-    
-  // 1. Enter en el Input de Búsqueda
-  if (currentFocus === searchInput && (e.key === 'Enter' || e.key === 'NumpadEnter')) {
-    e.preventDefault();
-    executeSearch(); 
-    const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
-    if (firstResult) {
-        focusElement(firstResult);
-    }
-    return;
-  }
-    
-  // 2. Si el foco está en un INPUT y NO es el modal, asumimos que el usuario está escribiendo.
-  if (currentFocus && currentFocus.tagName === 'INPUT' && !searchModal.classList.contains('activo')) {
-      return; 
-  }
-
-  // 3. Manejo de Navegación dentro del Modal de Búsqueda
+  if (currentFocus && currentFocus.tagName === 'INPUT' && !searchModal.classList.contains('activo')) { return; }
   if (searchModal.classList.contains('activo')) {
     const focusablesInModal = getFocusableElements(searchModal);
     let nextFocus = null;
-
-    if (e.key === 'Escape') {
-      closeModal();
-      return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    switch (e.key) {
+      case 'ArrowUp': e.preventDefault(); nextFocus = findNextFocus('up', focusablesInModal); break;
+      case 'ArrowDown': e.preventDefault(); nextFocus = findNextFocus('down', focusablesInModal); break;
+      case 'ArrowLeft': e.preventDefault(); nextFocus = findNextFocus('left', focusablesInModal); break;
+      case 'ArrowRight': e.preventDefault(); nextFocus = findNextFocus('right', focusablesInModal); break;
+      case 'Enter': e.preventDefault(); if(currentFocus && currentFocus.href) { window.location.href = currentFocus.href; } else if (currentFocus && currentFocus.click) { currentFocus.click(); } return;
     }
-    
-    // Lógica de navegación especial para el INPUT de búsqueda
-    if (currentFocus === searchInput) {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            const firstResult = searchResults.querySelector('.result-item[tabindex="0"]');
-            const clearButton = document.getElementById('searchClear');
-            // Prioridad: 1. Primer resultado, 2. Botón Borrar
-            nextFocus = firstResult || clearButton; 
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            nextFocus = document.getElementById('searchClear');
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-            // Evitar que el foco se mueva si estamos en el input, permitiendo la escritura
-            e.preventDefault();
-            return;
-        }
-    } else {
-        // Lógica de navegación normal para botones y resultados
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault();
-            nextFocus = findNextFocus('up', focusablesInModal);
-            break;
-          case 'ArrowDown':
-            e.preventDefault();
-            nextFocus = findNextFocus('down', focusablesInModal);
-            break;
-          case 'ArrowLeft':
-            e.preventDefault();
-            nextFocus = findNextFocus('left', focusablesInModal);
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            nextFocus = findNextFocus('right', focusablesInModal);
-            break;
-        }
-    }
-
-    if (nextFocus) {
-      focusElement(nextFocus);
-    }
+    if (nextFocus) { focusElement(nextFocus); }
     return;
   }
-  
-  // 4. Navegación en el Cuerpo Principal (si el modal está cerrado)
-  
   const focusables = getFocusableElements();
   let nextFocus = null;
-
   switch (e.key) {
-    case 'ArrowUp':
-      e.preventDefault();
-      nextFocus = findNextFocus('up', focusables);
-      break;
-    case 'ArrowDown':
-      e.preventDefault();
-      nextFocus = findNextFocus('down', focusables);
-      break;
-    case 'ArrowLeft':
-      e.preventDefault();
-      nextFocus = findNextFocus('left', focusables);
-      break;
-    case 'ArrowRight':
-      e.preventDefault();
-      nextFocus = findNextFocus('right', focusables);
-      break;
-    case 'Enter':
-    case 'NumpadEnter': 
-      e.preventDefault();
+    case 'ArrowUp': e.preventDefault(); nextFocus = findNextFocus('up', focusables); break;
+    case 'ArrowDown': e.preventDefault(); nextFocus = findNextFocus('down', focusables); break;
+    case 'ArrowLeft': e.preventDefault(); nextFocus = findNextFocus('left', focusables); break;
+    case 'ArrowRight': e.preventDefault(); nextFocus = findNextFocus('right', focusables); break;
+    case 'Enter': case 'NumpadEnter': e.preventDefault();
       if(currentFocus) {
-        if(currentFocus.href) {
-            window.location.href = currentFocus.href;
-        } else if (currentFocus.click) {
-            currentFocus.click();
-        }
+        if(currentFocus.href) { window.location.href = currentFocus.href; } else if (currentFocus.click) { currentFocus.click(); }
       }
       return;
   }
-
-  if (nextFocus) {
-    focusElement(nextFocus);
-  }
+  if (nextFocus) { focusElement(nextFocus); }
 });
 
-
-/* Activate lucide icons */
 document.addEventListener('DOMContentLoaded', ()=> lucide.createIcons());
-
-/* ====== CARGAR 5 JSON EXTERNOS POR URL ====== */
-
-async function cargarJSON(url){
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  } catch (error) {
-    console.error("Error al cargar JSON:", url, error);
-    return []; 
-  }
-}
-
-async function cargarTodos(){
-  // --- Descomenta y ajusta las rutas si usas JSONs externos ---
-  // const j1 = await cargarJSON("./json1.json"); 
-  // const j2 = await cargarJSON("./jsons/manga2.json");
-  // const j3 = await cargarJSON("./jsons/comics.json");
-
-  // window.jsonExtra = [...j1, ...j2, ...j3];
-  window.jsonExtra = [];
-}
-
-cargarTodos();
 </script>
 
 </body>
