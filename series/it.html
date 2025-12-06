@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles - Título del Contenido</title>
+    
+    <style>
+/* -------------------- ESTILOS CSS COMPLETOS (CON CORRECCIONES DE ESTRUCTURA Y ALINEACIÓN) -------------------- */
+:root {
+    --color-fondo-oscuro: #0a0a0a;
+    --color-primario: #FF7043; 
+    --color-texto: #FFFFFF;
+    --color-resaltado: #E50914; 
+}
+
+body {
+    background-color: var(--color-fondo-oscuro);
+    color: var(--color-texto);
+    font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* -------------------- BANNER Y PÓSTER FLOTANTE -------------------- */
+.top-banner-hero {
+    position: relative;
+    width: 100%;
+    /* Reducimos la altura del banner para dar más espacio al contenido inferior si es necesario */
+    height: 60vh; 
+    background-color: #1a1a1a;
+    overflow: hidden;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Aseguramos el degradado */
+    background: linear-gradient(to top, var(--color-fondo-oscuro) 0%, rgba(10, 10, 10, 0.9) 30%, rgba(10, 10, 10, 0.9) 60%, rgba(0, 0, 0, 0.6) 100%);
+    background-size: cover; 
+    background-position: center center;
+    z-index: 1; 
+}
+
+/* Header/Botón de Regreso (Máxima prioridad y visibilidad) */
+.header-overlay {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 50px 10px 50px; 
+    z-index: 9999; 
+    display: flex;
+    justify-content: space-between;
+}
+
+.back-button {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2em;
+    padding: 10px 15px;
+    border-radius: 6px;
+    /* Fondo más sólido y oscuro para eliminar conflictos de color */
+    background-color: rgba(0, 0, 0, 0.9); 
+    transition: background-color 0.2s, outline 0.2s;
+    border: 2px solid transparent;
+    z-index: 10000; 
+}
+.back-button:focus {
+    background-color: var(--color-resaltado);
+    outline: 2px solid white;
+}
+
+/* Contenedor Flotante de Información (REESTRUCTURACIÓN) */
+.media-info-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    /* Usamos align-items: flex-end para que la sinopsis comience desde abajo */
+    align-items: flex-end; 
+    padding: 0 50px 50px 50px;
+    z-index: 5; 
+}
+
+.media-poster-box {
+    width: 300px; 
+    height: 450px;
+    position: relative;
+    margin-right: 40px;
+    /* CORRECCIÓN CLAVE: Ajustamos la superposición a la mitad del tamaño, o menos. */
+    margin-bottom: -150px; 
+    flex-shrink: 0;
+    z-index: 6; 
+}
+
+.media-poster {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+    border: 5px solid white; 
+}
+
+.media-details {
+    color: white;
+    flex-grow: 1; 
+    max-width: 1000px; 
+    
+    /* Fondo de la sinopsis bien definido */
+    background-color: rgba(0, 0, 0, 0.7); 
+    padding: 20px 30px; /* Aumentamos el padding para que el texto respire */
+    border-radius: 12px;
+    z-index: 5; 
+}
+
+.media-title {
+    font-size: 3.5em;
+    font-weight: 900;
+    margin: 0 0 10px 0;
+    word-break: break-word; 
+}
+
+.meta-info {
+    font-size: 1.1em;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+.meta-info span {
+    margin-right: 20px;
+    padding: 2px 5px;
+}
+
+.genres-list {
+    margin-bottom: 25px;
+}
+.genre-tag {
+    background-color: var(--color-primario);
+    color: white;
+    padding: 5px 10px;
+    margin-right: 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+/* SINOPSIS */
+.synopsis-box {
+    margin-bottom: 30px;
+}
+.synopsis-box h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+.synopsis-text {
+    font-size: 1.1em;
+    line-height: 1.5;
+    color: #ddd;
+}
+
+/* Botones de Acción Flotantes */
+.action-buttons-float {
+    display: flex;
+    gap: 15px;
+}
+
+.play-main-button {
+    padding: 12px 25px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-primario); 
+    color: white;
+    transition: transform 0.2s, outline 0.2s;
+    outline: 2px solid transparent;
+}
+
+.add-list-button, .download-button {
+    padding: 12px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%; 
+    width: 50px;
+    height: 50px;
+    background-color: #222;
+    color: white;
+    transition: transform 0.2s, outline 0.2s;
+    outline: 2px solid transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.play-main-button:focus, 
+.add-list-button:focus, 
+.download-button:focus,
+.focused { 
+    transform: scale(1.05);
+    outline: 3px solid white;
+}
+
+
+/* -------------------- SECCIÓN DE CAPÍTULOS -------------------- */
+.chapters-section {
+    /* Ajustamos el padding-top para que el contenido empiece BAJO el póster con suficiente margen */
+    padding: 180px 50px 50px 50px; 
+    background-color: var(--color-fondo-oscuro);
+    position: relative;
+    z-index: 1; 
+}
+
+.chapters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.chapters-header h2 {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.season-selector {
+    padding: 8px 15px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background-color: #1e1e1e;
+    color: white;
+    cursor: pointer;
+    transition: border-color 0.2s, outline 0.2s;
+    outline: 2px solid transparent;
+}
+.season-selector:focus,
+.season-selector.focused {
+    border-color: var(--color-primario);
+    outline: 2px solid white;
+}
+
+.episodes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; 
+}
+
+/* --- EPISODIO: DISEÑO IDÉNTICO A LA IMAGEN --- */
+.episode-item {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    padding: 10px 0;
+    border-radius: 0; 
+    transition: transform 0.2s, background-color 0.2s;
+    border: 3px solid transparent; 
+    outline: none;
+    border-bottom: 1px solid #222; 
+}
+
+.episode-item:focus,
+.episode-item.focused {
+    transform: scale(1.005);
+    background-color: #1a1a1a;
+    border-radius: 6px;
+    border: 3px solid var(--color-primario);
+}
+
+.episode-thumbnail {
+    width: 120px; 
+    height: 70px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-right: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+/* Icono de Play en la Miniatura */
+.episode-thumbnail::after {
+    content: '▶';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.5em; 
+    opacity: 0.8;
+    text-shadow: 0 0 5px black;
+}
+
+.episode-details {
+    flex-grow: 1;
+}
+
+.episode-info-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.episode-num-title {
+    font-weight: 500;
+    color: white;
+    font-size: 1em;
+    margin: 0;
+}
+
+.episode-duration {
+    font-size: 0.8em;
+    color: #888;
+    margin-left: auto;
+    padding-right: 20px; 
+}
+
+.episode-description {
+    font-size: 0.9em;
+    color: #aaa;
+    line-height: 1.3;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Flecha de la imagen */
+.episode-arrow-icon {
+    font-size: 1.5em;
+    color: #555;
+    margin-left: 20px;
+}
+
+/* -------------------- CONTENIDO RELACIONADO -------------------- */
+.related-title {
+    margin-top: 50px;
+    font-size: 1.8em;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.related-content-list {
+    display: flex;
+    overflow-x: scroll;
+    padding: 10px 0;
+    width: 100%; 
+}
+
+.related-card {
+    min-width: 150px;
+    height: 225px;
+    margin-right: 15px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.35s ease, border 0.35s ease;
+    border: 3px solid transparent;
+    outline: none;
+}
+
+.related-card:focus,
+.related-card.focused {
+    transform: scale(1.15);
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 10px var(--color-primario);
+    border: 3px solid white;
+}
+
+/* -------------------- MEDIA QUERY PARA PANTALLAS GRANDES/TV -------------------- */
+@media (min-width: 1200px) {
+    .top-banner-hero {
+        height: 55vh; 
+    }
+
+    .media-info-container {
+        padding: 0 80px 50px 80px;
+    }
+    
+    .media-poster-box {
+        width: 250px; 
+        height: 375px; 
+        margin-right: 50px;
+        margin-bottom: -100px; /* Ajuste para desktop */
+    }
+    
+    .media-details {
+        padding: 20px 30px; 
+    }
+
+    .media-title {
+        font-size: 3em; 
+    }
+
+    .chapters-section {
+        padding: 140px 80px 50px 80px; /* Ajuste para desktop */
+    }
+}
+/* -------------------- FIN MEDIA QUERY -------------------- */
+    </style> 
+</head>
+<body>
+    
+    <main class="detail-main-content">
+        <section class="top-banner-hero" id="top-banner-hero">
+            <div class="banner-overlay"></div>
+            
+            <div class="header-overlay">
+                <a href="https://raw.githack.com/inkaflix/playerapi/main/home/home.html" class="back-button" tabindex="0" data-nav-item="back">← Regresar</a>
+                <div class="user-info">
+                    <span class="profile-icon">👤</span>
+                </div>
+            </div>
+
+            <div class="media-info-container">
+                <div class="media-poster-box">
+                    <div class="media-poster" id="media-poster"></div>
+                </div>
+
+                <div class="media-details">
+                    <h1 class="media-title" id="media-title">Cargando...</h1>
+                    <div class="meta-info">
+                        <span class="year" id="year-info"></span>
+                        <span class="status" id="status-info"></span>
+                        <span class="seasons" id="seasons-info"></span>
+                        <span class="rating" id="rating-info"></span>
+                    </div>
+                    
+                    <div class="genres-list" id="genres-list"></div>
+
+                    <div class="synopsis-box">
+                        <h2>SINOPSIS:</h2>
+                        <p class="synopsis-text" id="synopsis-text">Cargando...</p>
+                    </div>
+
+                    <div class="action-buttons-float">
+                        <button class="play-main-button" tabindex="0" data-nav-item="button" id="play-main-button">
+                            ▶ REPRODUCIR PELÍCULA
+                        </button>
+                        <button class="add-list-button" tabindex="0" data-nav-item="button">
+                            +
+                        </button>
+                        <button class="download-button" tabindex="0" data-nav-item="button">
+                            ⬇
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="chapters-section">
+            <div class="chapters-header">
+                <h2>CAPÍTULOS</h2>
+                <select class="season-selector" id="season-selector" tabindex="0" data-nav-item="selector"></select>
+            </div>
+            
+            <div class="episodes-list" id="episodes-list">
+                </div>
+            
+            <h2 class="related-title">Más Contenido Similar</h2>
+            <div class="related-content-list" id="related-content-list">
+                </div>
+        </section>
+    </main>
+
+    <script>
+// =======================================================
+// --- CONFIGURACIÓN DE TMDB Y URLs de Stream ---
+// =======================================================
+
+// *** REEMPLAZA ESTOS VALORES CON TU INFORMACIÓN REAL ***
+const API_KEY = "867b27ebb5a72c3f64ee67bc9dd7a794"; 
+const MEDIA_ID = 200875; // Ejemplo: ID de "Dragon Ball Super: Broly"
+const MEDIA_TYPE = "tv"; // O "movie" o "tv"
+// ******************************************************
+
+// OBJETO CLAVE: AQUÍ DEBES AGREGAR LAS URLS DE REPRODUCCIÓN
+const STREAM_URLS = {
+    // URL para la película (MEDIA_TYPE = "movie")
+  //  'movie_url': 'https://raw.githack.com/inkaflix/playerapi/main/vip/rango.html', -->
+
+    // URLs de ejemplo para una SERIE (Si MEDIA_TYPE fuese "tv")
+'S1E1': 'https://raw.githack.com/inkaflix/playerapi/main/vip/it1.html',
+'S1E2': 'URL_DEL_EPISODIO_2_TEMP_1',
+'S1E3': 'URL_DEL_EPISODIO_3_TEMP_1',
+'S1E4': 'URL_DEL_EPISODIO_4_TEMP_1',
+'S1E5': 'URL_DEL_EPISODIO_5_TEMP_1',
+'S1E6': 'URL_DEL_EPISODIO_6_TEMP_1',
+    // ...
+};
+
+const BASE_URL = "https://api.themoviedb.org/3";
+const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+const POSTER_SIZE = "w500";
+const BACKDROP_SIZE = "w1280";
+const THUMBNAIL_SIZE = "w300";
+
+let currentSeriesData = null; 
+
+// -----------------------------------------------------
+// LÓGICA DE REPRODUCCIÓN 
+// -----------------------------------------------------
+
+function goToPlayer(url, title) {
+    if (!url || url.includes('URL_DEL_EPISODIO')) {
+        alert(`No se encontró una URL de reproducción configurada para: ${title}. Por favor, reemplaza la URL placeholder en STREAM_URLS.`);
+        return;
+    }
+    
+    // Aquí es donde se realiza la redirección real
+    window.location.href = url; 
+}
+
+// -----------------------------------------------------
+// LÓGICA DE RENDERIZADO 
+// -----------------------------------------------------
+
+function renderSeriesDetails(data) {
+    currentSeriesData = data; 
+
+    const title = data.name || data.title;
+    const year = (data.first_air_date || data.release_date || 'N/A').substring(0, 4);
+    const status = data.status || 'N/A';
+    const numSeasons = data.number_of_seasons;
+    const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
+    const synopsis = data.overview || 'Sinopsis no disponible.';
+    const genres = data.genres || [];
+    const backdropPath = data.backdrop_path;
+    const posterPath = data.poster_path;
+    
+    // Banner y Póster
+    const bannerOverlay = document.querySelector('.banner-overlay');
+    const posterUrl = posterPath ? `${IMAGE_BASE_URL}/${POSTER_SIZE}${posterPath}` : 'https://via.placeholder.com/300x450?text=No+Poster';
+    const backdropUrl = backdropPath ? `${IMAGE_BASE_URL}/${BACKDROP_SIZE}${backdropPath}` : 'https://via.placeholder.com/1920x800?text=No+Banner';
+
+    const colorFondoOscuro = getComputedStyle(document.documentElement).getPropertyValue('--color-fondo-oscuro').trim();
+    bannerOverlay.style.backgroundImage = `linear-gradient(to top, ${colorFondoOscuro} 0%, rgba(10, 10, 10, 0.9) 30%, rgba(10, 10, 10, 0.9) 60%, rgba(0, 0, 0, 0.6) 100%), url('${backdropUrl}')`;
+    bannerOverlay.style.backgroundSize = 'cover';
+    bannerOverlay.style.backgroundPosition = 'center top';
+
+    document.getElementById('media-poster').style.backgroundImage = `url('${posterUrl}')`;
+
+    // Detalles de Texto
+    document.getElementById('media-title').textContent = title;
+    document.getElementById('year-info').textContent = year;
+    document.getElementById('status-info').textContent = status;
+    document.getElementById('synopsis-text').textContent = synopsis;
+    document.getElementById('rating-info').textContent = `⭐ ${rating}`;
+    
+    const playButton = document.getElementById('play-main-button');
+    if (MEDIA_TYPE === 'movie') {
+        playButton.textContent = '▶ REPRODUCIR PELÍCULA';
+    } else {
+        playButton.textContent = '▶ COMENZAR A VER';
+    }
+
+    if (MEDIA_TYPE === 'tv' && numSeasons) {
+         document.getElementById('seasons-info').textContent = `${numSeasons} Temporada${numSeasons > 1 ? 's' : ''}`;
+    } else if (MEDIA_TYPE === 'movie') {
+         document.getElementById('seasons-info').style.display = 'none';
+    }
+
+    // Géneros
+    const genresList = document.getElementById('genres-list');
+    genresList.innerHTML = genres.map(g => `<span class="genre-tag">${g.name.toUpperCase()}</span>`).join('');
+    
+    // Series
+    if (MEDIA_TYPE === 'tv') {
+        renderSeasonSelector(data.seasons);
+        const seasonNumber = data.seasons.find(s => s.season_number === 1)?.season_number || data.seasons[data.seasons.length - 1]?.season_number;
+        if (seasonNumber !== undefined) {
+             fetchEpisodes(seasonNumber);
+        } else {
+             document.getElementById('episodes-list').innerHTML = '<p style="margin-left: 20px;">No se encontraron temporadas.</p>';
+        }
+    } else {
+        document.querySelector('.chapters-section .chapters-header').style.display = 'none';
+        document.getElementById('episodes-list').style.display = 'none';
+    }
+}
+
+function renderSeasonSelector(seasons) {
+    const selector = document.getElementById('season-selector');
+    selector.innerHTML = '';
+    const validSeasons = seasons.filter(s => s.season_number >= 1); 
+
+    validSeasons.forEach(season => {
+        const option = document.createElement('option');
+        option.value = season.season_number;
+        option.textContent = `TEMPORADA ${season.season_number}`;
+        if (season.season_number === 1) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    });
+    
+    selector.addEventListener('change', (e) => {
+        fetchEpisodes(e.target.value);
+    });
+}
+
+
+function createEpisodeItem(episode, seasonNumber) {
+    const thumbnailPath = episode.still_path;
+    const thumbnailUrl = thumbnailPath ? `${IMAGE_BASE_URL}/${THUMBNAIL_SIZE}${thumbnailPath}` : 'https://via.placeholder.com/120x70?text=No+Img';
+    const title = episode.name || `Episodio ${episode.episode_number}`;
+    const description = episode.overview || 'Sin descripción disponible.';
+    const duration = episode.runtime ? `${episode.runtime} min` : 'N/A';
+    const streamKey = `S${seasonNumber}E${episode.episode_number}`;
+    
+    return `
+        <div class="episode-item" 
+            tabindex="0" 
+            data-nav-item="episode" 
+            data-season-number="${seasonNumber}"
+            data-episode-number="${episode.episode_number}"
+            data-stream-url="${STREAM_URLS[streamKey] || ''}"
+        >
+            <div class="episode-thumbnail" style="background-image: url('${thumbnailUrl}');"></div>
+            <div class="episode-details">
+                <div class="episode-info-line">
+                    <p class="episode-num-title">E${episode.episode_number}: ${title}</p>
+                    <span class="episode-duration">${duration}</span>
+                </div>
+                <p class="episode-description">${description}</p>
+            </div>
+            <span class="episode-arrow-icon">›</span>
+        </div>
+    `;
+}
+
+function renderEpisodes(episodes, seasonNumber) {
+    const listContainer = document.getElementById('episodes-list');
+    listContainer.innerHTML = ''; 
+    
+    if (episodes && episodes.length > 0) {
+        let episodesHTML = '';
+        episodes.forEach(episode => {
+            episodesHTML += createEpisodeItem(episode, seasonNumber);
+        });
+        listContainer.innerHTML = episodesHTML;
+    } else {
+        listContainer.innerHTML = '<p style="margin-left: 20px;">No hay información de episodios para esta temporada.</p>';
+    }
+}
+
+function createRelatedCard(item) {
+    const posterPath = item.poster_path;
+    const posterUrl = posterPath ? `${IMAGE_BASE_URL}/${POSTER_SIZE}${posterPath}` : 'https://via.placeholder.com/150x225?text=No+Poster';
+
+    return `
+        <div 
+            class="card related-card" 
+            style="background-image: url('${posterUrl}');" 
+            tabindex="0" 
+            data-nav-item="related" 
+            data-media-id="${item.id}"
+            data-media-type="${item.media_type || MEDIA_TYPE}"
+            title="${item.title || item.name}"
+        ></div>
+    `;
+}
+
+function renderRelatedContent(relatedItems) {
+    const listContainer = document.getElementById('related-content-list');
+    listContainer.innerHTML = '';
+    
+    if (relatedItems && relatedItems.length > 0) {
+        let relatedHTML = '';
+        relatedItems.slice(0, 10).forEach(item => { 
+            relatedHTML += createRelatedCard(item);
+        });
+        listContainer.innerHTML = relatedHTML;
+    } else {
+        listContainer.innerHTML = '<p style="margin-left: 20px;">No hay contenido relacionado disponible.</p>';
+    }
+}
+
+
+// -----------------------------------------------------
+// LÓGICA DE FETCH CON TMDB
+// -----------------------------------------------------
+
+async function fetchMediaDetails() {
+    try {
+        const url = `${BASE_URL}/${MEDIA_TYPE}/${MEDIA_ID}?api_key=${API_KEY}&language=es-ES`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Error al cargar los detalles: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        renderSeriesDetails(data);
+        fetchRelatedContent();
+
+    } catch (error) {
+        console.error("Error al obtener los detalles de la media:", error);
+        document.getElementById('media-title').textContent = 'Error al cargar';
+        document.getElementById('synopsis-text').textContent = 'No se pudieron cargar los datos de la API. Revisa la consola para más detalles.';
+    }
+}
+
+async function fetchEpisodes(seasonNumber) {
+    if (MEDIA_TYPE !== 'tv') return;
+
+    try {
+        const url = `${BASE_URL}/tv/${MEDIA_ID}/season/${seasonNumber}?api_key=${API_KEY}&language=es-ES`;
+        document.getElementById('episodes-list').innerHTML = '<p style="margin-left: 20px;">Cargando episodios...</p>';
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Error al cargar los episodios: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        renderEpisodes(data.episodes, seasonNumber); 
+
+    } catch (error) {
+        console.error(`Error al obtener los episodios de la temporada ${seasonNumber}:`, error);
+        document.getElementById('episodes-list').innerHTML = '<p style="margin-left: 20px;">Error al cargar los episodios de la temporada.</p>';
+    }
+}
+
+async function fetchRelatedContent() {
+    try {
+        const url = `${BASE_URL}/${MEDIA_TYPE}/${MEDIA_ID}/recommendations?api_key=${API_KEY}&language=es-ES`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Error al cargar el contenido relacionado: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        renderRelatedContent(data.results);
+
+    } catch (error) {
+        console.error("Error al obtener contenido relacionado:", error);
+    }
+}
+
+
+// -----------------------------------------------------
+// LÓGICA DE NAVEGACIÓN (ANDROID TV D-PAD)
+// -----------------------------------------------------
+
+let focusableElements = [];
+let focusedElementIndex = 0;
+
+function setupNavigation() {
+    focusableElements = Array.from(document.querySelectorAll('.back-button, [data-nav-item="button"], [data-nav-item="selector"], [data-nav-item="episode"], [data-nav-item="related"]'));
+    
+    if (focusableElements.length > 0) {
+        setFocus(1); 
+    }
+}
+
+function setFocus(newIndex) {
+    if (focusableElements[focusedElementIndex]) {
+        focusableElements[focusedElementIndex].classList.remove('focused');
+        focusableElements[focusedElementIndex].blur();
+    }
+
+    if (newIndex < 0) {
+        newIndex = 0;
+    } else if (newIndex >= focusableElements.length) {
+        newIndex = focusableElements.length - 1;
+    }
+    focusedElementIndex = newIndex;
+
+    const newFocusElement = focusableElements[focusedElementIndex];
+    newFocusElement.focus();
+    newFocusElement.classList.add('focused');
+
+    newFocusElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest' 
+    });
+}
+
+
+document.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace', 'Escape'].includes(e.key)) {
+        e.preventDefault(); 
+    }
+    
+    let newIndex = focusedElementIndex;
+
+    if (e.key === 'Backspace' || e.key === 'Escape') {
+        window.location.href = 'https://raw.githack.com/inkaflix/playerapi/main/home/home.html';
+        return;
+    }
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        newIndex = focusedElementIndex + 1; 
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        newIndex = focusedElementIndex - 1;
+    } 
+    
+    else if (e.key === 'Enter') {
+        const selectedElement = focusableElements[focusedElementIndex];
+        const elementType = selectedElement.getAttribute('data-nav-item');
+        let streamUrl = null;
+        let playTitle = '';
+
+        if (elementType === 'episode') {
+            streamUrl = selectedElement.getAttribute('data-stream-url');
+            playTitle = selectedElement.querySelector('.episode-num-title').textContent;
+            goToPlayer(streamUrl, playTitle);
+
+        } else if (elementType === 'button' && selectedElement.id === 'play-main-button') {
+            if (MEDIA_TYPE === 'movie') {
+                streamUrl = STREAM_URLS['movie_url'];
+                playTitle = currentSeriesData.title;
+            } else if (MEDIA_TYPE === 'tv' && currentSeriesData) {
+                streamUrl = STREAM_URLS['S1E1'];
+                playTitle = `${currentSeriesData.name} - S1E1 (Inicio)`;
+            }
+            goToPlayer(streamUrl, playTitle);
+            
+        } else if (elementType === 'back') {
+            window.location.href = 'https://raw.githack.com/inkaflix/playerapi/main/home/home.html';
+        } 
+        return;
+    }
+
+    setFocus(newIndex);
+});
+
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    fetchMediaDetails();
+    setTimeout(setupNavigation, 1500); 
+});
+    </script>
+</body>
+</html>
+
