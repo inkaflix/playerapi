@@ -287,17 +287,13 @@ const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/140x170?text=No+Image';
 
 /* ==========================
    DATOS LOCALES (USA SOLO IDs DE TMDB Y LA NUEVA PROPIEDAD 'calidad')
-   
-   ⚠️ IMPORTANTE: He cambiado la URL de ejemplo 'inkaflix' por '#'
-   para que se use la URL de detalle local generada, asumiendo que
-   la URL externa era la que mostraba el anuncio.
    ========================== */
 const data = { 
   // Usa "tipo: 'movie'" para películas y "tipo: 'tv'" para series/animes
   
   // 1. PELÍCULAS RECIENTES (Ejemplos de IDs de Películas)
   peliculasRecientes: [ 
-    { tmdbId: 44896, tipo: 'movie', url: "#", calidad: "1080p" }, // Rango (Antes tenía la URL externa)
+    { tmdbId: 44896, tipo: 'movie', url: "https://raw.githack.com/inkaflix/playerapi/main/movie/44896.html", calidad: "1080p" }, // Rango
     { tmdbId: 680, tipo: 'movie', url: "#", calidad: "1080p" }, // Pulp Fiction
     { tmdbId: 101, tipo: 'movie', url: "#", calidad: "1080p" }, //Léon (Sin marcador de calidad)
     { tmdbId: 155, tipo: 'movie', url: "#", calidad: "1080p" },  // The Dark Knight
@@ -369,7 +365,7 @@ async function fetchTMDBDetails(item) {
         // Fusiona los datos de TMDB con tus datos locales (url y **calidad**)
         return { 
             ...mappedItem, 
-            url: item.url === "#" ? mappedItem.url : item.url, // Si la URL local es "#", usa la URL de detalle mapeada. De lo contrario, usa la URL local (directa).
+            url: item.url || mappedItem.url, 
             calidad: item.calidad || null, // <-- USANDO 'calidad'
         };
 
@@ -727,14 +723,7 @@ window.addEventListener('keydown', (e) => {
       case 'ArrowDown': e.preventDefault(); nextFocus = findNextFocus('down', focusablesInModal); break;
       case 'ArrowLeft': e.preventDefault(); nextFocus = findNextFocus('left', focusablesInModal); break;
       case 'ArrowRight': e.preventDefault(); nextFocus = findNextFocus('right', focusablesInModal); break;
-      case 'Enter': e.preventDefault(); 
-        if(currentFocus && currentFocus.href) { 
-            // En el modal, usamos replace también
-            window.location.replace(currentFocus.href); 
-        } else if (currentFocus && currentFocus.click) { 
-            currentFocus.click(); 
-        } 
-        return;
+      case 'Enter': e.preventDefault(); if(currentFocus && currentFocus.href) { window.location.href = currentFocus.href; } else if (currentFocus && currentFocus.click) { currentFocus.click(); } return;
     }
     if (nextFocus) { focusElement(nextFocus); }
     return;
@@ -748,12 +737,7 @@ window.addEventListener('keydown', (e) => {
     case 'ArrowRight': e.preventDefault(); nextFocus = findNextFocus('right', focusables); break;
     case 'Enter': case 'NumpadEnter': e.preventDefault();
       if(currentFocus) {
-        // SOLUCIÓN: Usar replace() para cargar la URL directamente sin dejar historial intermedio
-        if(currentFocus.href) { 
-            window.location.replace(currentFocus.href); 
-        } else if (currentFocus.click) { 
-            currentFocus.click(); 
-        }
+        if(currentFocus.href) { window.location.href = currentFocus.href; } else if (currentFocus.click) { currentFocus.click(); }
       }
       return;
   }
