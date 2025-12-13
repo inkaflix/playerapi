@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Servidor Embed con Portada Adaptable</title>
+    
+    <style>
+        /* ======================================= */
+        /* === ESTILOS CSS (ADAPTADO Y CORREGIDO) === */
+        /* ======================================= */
+
+        :root {
+            --color-fondo-modal: #2e2e2e;
+            --color-separador: #444;
+            --color-texto-activo: #fff;
+            --color-texto-inactivo: #ccc;
+            --color-web-view: #ff5722;
+            --color-play-button: #2196f3;
+            --color-online: #3db841;
+        }
+
+        html, body {
+            height: 100%; 
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            color: var(--color-texto-activo);
+            display: flex;
+        }
+        
+        #video-embed-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+        #video-embed-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* === ESTILOS PARA LA PORTADA === */
+        #cover-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        /* Estilo para ocultar la portada una vez que se carga el video */
+        .hidden {
+            display: none !important;
+        }
+
+        #cover-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+        
+        /* Ajuste: Botón de Play adaptado a móviles */
+        #play-button {
+            z-index: 3;
+            width: 60px; 
+            height: 60px; 
+            background-color: rgba(33, 150, 243, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        #play-button:hover {
+            transform: scale(1.05);
+        }
+        #play-button::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid #fff;
+            margin-left: 3px;
+        }
+
+        /* Ajuste: Texto de la portada adaptado a móviles */
+        #cover-text {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            left: 50%; 
+            color: #fff;
+            font-size: 1em; 
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            margin-top: -80px; 
+            z-index: 3;
+            white-space: nowrap;
+        }
+        
+        /* === ESTILOS PARA LA INFO INFERIOR === */
+        #bottom-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px 15px; 
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+            color: var(--color-texto-activo);
+            font-size: 0.8em; 
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 3;
+            box-sizing: border-box; 
+        }
+
+        .info-left, .info-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .info-left span {
+            margin-right: 8px; 
+            font-weight: bold;
+        }
+
+        .flag-icon {
+            margin-right: 3px; 
+            font-size: 1em; 
+        }
+        
+        .flag-icon.mx { content: '🇲🇽'; } 
+        .flag-icon.es { content: '🇪🇸'; }
+        .flag-icon.us { content: '🇺🇸'; }
+
+        .online-status {
+            color: var(--color-online);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .server-count {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .online-status::before {
+            content: '\2022'; 
+            color: var(--color-online);
+            font-size: 1.5em;
+            line-height: 0.5;
+            margin-right: 2px;
+            vertical-align: middle;
+        }
+        .server-count::before {
+            content: '\2022'; 
+            color: #2196f3; 
+            font-size: 1.5em;
+            line-height: 0.5;
+            margin-right: 2px;
+            vertical-align: middle;
+        }
+        
+        /* Elementos fijos sobre el reproductor */
+        
+        #top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: var(--color-texto-activo);
+            padding: 8px 15px; 
+            font-size: 1em; 
+            font-weight: bold;
+            z-index: 5;
+            box-sizing: border-box; 
+        }
+
+        /* Ajuste: Botón de opciones adaptado a móviles */
+        #open-menu-btn {
+            position: fixed;
+            bottom: 10px; 
+            right: 10px; 
+            padding: 8px 12px; 
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px; 
+            color: var(--color-texto-activo);
+            font-size: 1em; 
+            cursor: pointer;
+            z-index: 5;
+        }
+        #open-menu-btn::before {
+             content: '\2699';
+             margin-right: 3px;
+        }
+
+        /* Modal y su Contenido (Aseguramos que no se desborde) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            /* APLICACIÓN DE LA TRANSPARENCIA (80% de opacidad) */
+            background-color: rgba(46, 46, 46, 0.8); 
+            padding: 5px; 
+            border-radius: 4px;
+            width: 95%; 
+            max-width: 380px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-sizing: border-box;
+        }
+        
+        .modal-header {
+            padding: 8px 10px 5px 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-header h3 {
+            font-size: 1em;
+            font-weight: bold;
+            color: var(--color-texto-activo);
+            margin: 0;
+            flex: 1;
+        }
+        /* Alineación del encabezado "Audio" a la izquierda */
+        .modal-header h3:first-child {
+            text-align: left; 
+            padding-right: 15px; 
+            padding-left: 0;
+        }
+        .modal-header h3:last-child {
+            /* Alineación a la izquierda para Servidor */
+            text-align: left; 
+            padding-left: 15px;
+        }
+        
+        .options-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px 5px 10px;
+        }
+        .options-column {
+            flex: 1;
+        }
+        /* Alineación de la columna de audio a la izquierda */
+        .options-column:first-child {
+            border-right: 1px solid var(--color-separador);
+            padding-right: 15px;
+            display: flex;
+            justify-content: flex-start; 
+        }
+        .options-column:last-child {
+            padding-left: 15px;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: auto; 
+            max-width: 100%;
+        }
+
+        /* Estilo general de opciones */
+        .option, .server-item {
+            padding: 4px 0;
+            cursor: pointer;
+            font-size: 0.9em; 
+            color: var(--color-texto-inactivo);
+            transition: color 0.1s;
+            white-space: nowrap;
+        }
+        
+        /* Alineación del texto de Audio a la izquierda */
+        #audio-list .option {
+            text-align: left; 
+        }
+
+        /* Alineación del texto de Servidor a la izquierda (se mantiene) */
+        #server-list .server-item {
+            text-align: left; 
+        }
+        
+        .check-mark {
+            margin-right: 5px;
+            font-size: 0.9em;
+            color: var(--color-texto-activo);
+            display: none;
+        }
+        .check-mark::before {
+            content: '\2713';
+        }
+        .option.active .check-mark {
+            display: inline;
+        }
+        .option.active {
+            color: var(--color-texto-activo);
+        }
+        .server-item.active-server {
+            font-weight: bold; 
+            color: var(--color-texto-activo);
+        }
+        
+        .web-view {
+            color: var(--color-web-view); 
+            font-size: 0.75em;
+            margin-left: 10px;
+            float: right; 
+        }
+        
+        /* Media Query para Tabletas y Escritorio (si aplica) */
+        @media (min-width: 600px) {
+            #play-button { width: 80px; height: 80px; }
+            #cover-text { font-size: 1.2em; margin-top: -100px; }
+            #open-menu-btn { bottom: 20px; right: 20px; padding: 10px 15px; font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-header">
+        Five Nights at Freddy's  2
+    </div>
+
+    <div id="video-embed-container">
+        <div id="cover-screen">
+            <img id="cover-image" src="https://image.tmdb.org/t/p/original/mPtPJzBkwksUoMEKpkZqxBrlKpZ.jpg" alt="Portada de la Película">
+            
+            <p id="cover-text">Estás viendo: Good Boy 2025</p>
+            
+            <div id="play-button"></div>
+            
+            <div id="bottom-info">
+                <div class="info-left">
+                    <span>2025</span> 
+                    <span class="flag-icon mx" title="Latino">🇲🇽</span>
+                    <span class="flag-icon es" title="Castellano">🇪🇸</span>
+                    <span class="flag-icon us" title="Subtitulado">🇺🇸</span>
+                </div>
+                <div class="info-right">
+                    <span class="online-status">ONLINE</span>
+                    <span id="server-count-display" class="server-count">9261 Servidores</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button id="open-menu-btn"></button>
+
+    <div id="options-modal" class="modal">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h3>Audio</h3> 
+                <h3>Servidor</h3>
+            </div>
+            
+            <div class="options-container">
+                
+                <div class="options-column audio-column">
+                    <ul id="audio-list">
+                        <li class="option active" data-server-group="latino">
+                            <span class="check-mark"></span> LATINO
+                        </li>
+                        <li class="option" data-server-group="castellano">
+                            <span class="check-mark"></span> CASTELLANO
+                        </li>
+                        <li class="option" data-server-group="subtitulado">
+                            <span class="check-mark"></span> SUBTITULADO
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="options-column server-column">
+                    <ul id="server-list">
+                        </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* ======================================= */
+        /* === LÓGICA JS (CERRADO Y CARGA) === */
+        /* ======================================= */
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // ----------------------------------------------------
+            // DATOS DE LOS SERVIDORES (MODIFICA AQUÍ)
+            // ----------------------------------------------------
+            const SERVER_DATA = {
+                // Servidores para Latino
+                'latino': [
+                    { name: 'VIP FREE', code: 'aHR0cHM6Ly9zdHJlYW1pbmcuY2luZWRvbS5wcm8vYXBpL21vdmllLzE0MjIwOTY=', type: 'base64' }, 
+                    { name: 'STREAMWISH', code: 'aHR0cHM6Ly9oZ2xpbmsudG8vZS85cmlkdHZjb2pjeXc=', type: 'base64' },
+                    { name: 'FILEMOONTO', code: 'aHR0cHM6Ly9maWxlbW9vbi50by9lL3NvOG5oaGR6ODlreA==', type: 'base64' },
+                    { name: 'MYVIDPLAY', code: 'aHR0cHM6Ly9teXZpZHBsYXkuY29tL2UvZDZzbm1wbjBuYWJr', type: 'base64'}
+                
+                ],
+               
+                'castellano': [
+                    { name: 'VIP FREE', code: 'aHR0cHM6Ly9zdHJlYW1pbmcuY2luZWRvbS5wcm8vYXBpL21vdmllLzE0MjIwOTY=', type: 'base64' }, 
+                    { name: 'STREAMWISH', code: 'aHR0cHM6Ly9oZ2xpbmsudG8vZS94eGVxenF4a2MydnI=', type: 'base64' },
+                    { name: 'FILEMOONTO', code: 'aHR0cHM6Ly9maWxlbW9vbi50by9lL24wMHN2N3R5dXl5Yg==', type: 'base64' },
+                    { name: 'MYVIDPLAY', code: 'aHR0cHM6Ly9teXZpZHBsYXkuY29tL2UvcXk3cnF0NzNvYXN4', type: 'base64'}
+                
+                ],
+               
+                'subtitulado': [
+                    { name: 'VIP FREE', code: 'aHR0cHM6Ly9zdHJlYW1pbmcuY2luZWRvbS5wcm8vYXBpL21vdmllLzE0MjIwOTY=', type: 'base64' }, 
+                    { name: 'STREAMWISH', code: 'aHR0cHM6Ly9oZ2xpbmsudG8vZS84eGYxZ3p2M3d1ZnQ=', type: 'base64' },
+                    { name: 'FILEMOONTO', code: 'aHR0cHM6Ly9maWxlbW9vbi5zeC9lL3BvNXZiOTU2cTZ0aQ==', type: 'base64' },
+                    { name: 'MYVIDPLAY', code: 'aHR0cHM6Ly9oZ2xpbmsudG8vZS84eGYxZ3p2M3d1ZnQ=', type: 'base64'}
+                
+                ],
+              
+                // === SERVIDORES FIXED (MODIFICADOS PARA ABRIR URL) ===
+                'fixed': [
+                    // **IMPORTANTE:** Reemplaza 'https://ejemplo.com/...' con tus URLs reales.
+                    { name: 'DOWNLOAD', code: '#', type: 'link' },
+                    { name: 'VIP', code: '#', type: 'link' },
+                ]
+            };
+            
+            // --- Selectores ---
+            const modal = document.getElementById('options-modal');
+            const openMenuBtn = document.getElementById('open-menu-btn');
+            const audioOptions = document.querySelectorAll('#audio-list .option');
+            const serverList = document.getElementById('server-list');
+            const videoContainer = document.getElementById('video-embed-container');
+            const coverScreen = document.getElementById('cover-screen'); 
+            const playButton = document.getElementById('play-button');
+            const serverCountDisplay = document.getElementById('server-count-display'); 
+            
+            // --- Función para Decodificar Base64 ---
+            function base64Decode(encodedString) {
+                try {
+                    return decodeURIComponent(atob(encodedString).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            /** Carga el iframe, OCULTA el modal y OCULTA la portada (o abre una nueva pestaña) */
+            function loadEmbed(serverItem) {
+                const code = serverItem.code;
+                const type = serverItem.type;
+                let embedUrl = '';
+                
+                if (type === 'base64') {
+                    // Carga normal del iframe
+                    embedUrl = base64Decode(code);
+                    if (!embedUrl) {
+                         videoContainer.innerHTML = `<p style="color:red; padding: 20px;">ERROR: El servidor ${serverItem.name} aun no comtiene el idioma 404 PROXIMAMENTE.</p>`;
+                         modal.style.display = 'none'; 
+                         return;
+                    }
+                    
+                    videoContainer.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+                    coverScreen.classList.add('hidden'); // Oculta la portada al cargar el video
+                    
+                } else if (type === 'link') {
+                    // === LÓGICA DE APERTURA AUTOMÁTICA EN NUEVA PESTAÑA ===
+                    
+                    // Abre la URL en una nueva pestaña
+                    window.open(code, '_blank');
+                    
+                    // Cerramos el modal
+                    modal.style.display = 'none';
+                    
+                    // Nota: Mantenemos la portada visible, ya que el video no se está cargando aquí.
+                    // Si el usuario quiere ver el video, debe elegir un servidor base64.
+                }
+                
+                // Asegura que el modal se cierre después de la acción.
+                modal.style.display = 'none'; 
+            }
+
+            /** Muestra los servidores en la lista de la columna derecha */
+            function displayServers(audioGroup) {
+                serverList.innerHTML = ''; // Limpiar lista de servidores
+                
+                const activeServers = SERVER_DATA[audioGroup] || []; 
+                const fixedServers = SERVER_DATA.fixed || [];
+                
+                // Juntar servidores de audio activo y servidores fijos
+                const serversToDisplay = activeServers.concat(fixedServers);
+                
+                // Actualizar el contador de servidores en la portada
+                serverCountDisplay.textContent = `${serversToDisplay.length} Servidores`;
+
+                serversToDisplay.forEach((server, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'server-item';
+                    
+                    // Solo marca el primero del grupo activo si no es un servidor fijo
+                    // Y solo si el grupo activo no está vacío
+                    if (index === 0 && index < activeServers.length) {
+                         li.classList.add('active-server');
+                    }
+
+                    // Insertamos el texto del servidor con el "Web View"
+                    let extraInfo = '';
+                    if (server.type === 'base64') {
+                        extraInfo = '<span class="web-view">Web View</span>';
+                    } else if (server.type === 'link') {
+                        extraInfo = '<span class="web-view" style="color:#ff0000;">Download / Enlace</span>'; // Un estilo diferente para el fixed/link
+                    }
+                    
+                    li.innerHTML = `${server.name} ${extraInfo}`;
+                    
+                    li.addEventListener('click', function() {
+                        // Quitar 'active-server' a todos y ponerlo al seleccionado
+                        document.querySelectorAll('.server-item').forEach(s => s.classList.remove('active-server'));
+                        this.classList.add('active-server');
+                        
+                        // Carga el iframe o abre la nueva ventana
+                        loadEmbed(server);
+                    });
+                    
+                    serverList.appendChild(li);
+                });
+            }
+            
+            // --- Event Listeners ---
+            
+            // El botón de Play ABRE EL MODAL DE OPCIONES
+            playButton.addEventListener('click', () => {
+                modal.style.display = 'flex';
+                // Asegura que la lista de servidores esté cargada
+                if (serverList.children.length === 0) {
+                    const activeAudio = document.querySelector('.option.active');
+                    if(activeAudio) {
+                        displayServers(activeAudio.getAttribute('data-server-group'));
+                    }
+                }
+            });
+
+            // Evento de click en las opciones de Audio (Columna izquierda)
+            audioOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 1. Manejo del Check (sólo uno activo)
+                    audioOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 2. Carga de servidores filtrados en la columna derecha
+                    const selectedGroup = this.getAttribute('data-server-group');
+                    displayServers(selectedGroup);
+                });
+            });
+
+            // Botón para abrir el menú (Settings ⚙️)
+            openMenuBtn.onclick = () => { 
+                modal.style.display = 'flex'; 
+                // Asegura que la lista de servidores se cargue al abrir el menú
+                if (serverList.children.length === 0) {
+                     const activeAudio = document.querySelector('.option.active');
+                    if(activeAudio) {
+                        displayServers(activeAudio.getAttribute('data-server-group'));
+                    }
+                }
+            }
+            
+            // Cerrar Modal haciendo clic fuera
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            // --- Inicialización ---
+            // Inicia el sistema cargando LATINO por defecto y mostrando la lista inicial de servidores
+            const initialAudio = document.querySelector('.option.active');
+            if(initialAudio) {
+                displayServers(initialAudio.getAttribute('data-server-group'));
+            }
+        });
+    </script>
+</body>
+</html>
