@@ -60,33 +60,54 @@
             box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
         }
 
-        /* Estilo para los botones principales (Generar) */
-        #generarBtn {
-            background-color: #28a745;
-            color: white;
+        /* Contenedor de botones principales (Generar y Limpiar) */
+        .main-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* Estilo para los botones principales */
+        .main-buttons button {
             padding: 12px 20px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-size: 18px;
             transition: background-color 0.3s, transform 0.1s;
-            width: 100%;
-            display: block;
-            margin-bottom: 25px;
+            flex-grow: 1; /* Para que ocupen el mismo ancho */
+        }
+
+        /* Estilo para el botón Generar */
+        #generarBtn {
+            background-color: #28a745;
+            color: white;
         }
 
         #generarBtn:hover {
             background-color: #218838;
         }
         
-        #generarBtn:active {
+        /* Estilo para el botón Limpiar */
+        #limpiarBtn {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+        }
+
+        #limpiarBtn:hover {
+            background-color: #c82333;
+        }
+        
+        /* Efecto al presionar */
+        .main-buttons button:active {
             transform: translateY(1px);
         }
         
+        /* Contenedor de resultado (textarea + copiar) */
         .result-actions {
             display: flex;
-            gap: 10px; /* Espacio entre el campo de texto y el botón */
-            align-items: flex-end; /* Alinear el botón en la parte inferior */
+            gap: 10px; 
+            align-items: flex-end; 
         }
 
         #resultadoUrl {
@@ -97,20 +118,20 @@
             border-radius: 6px;
             font-size: 16px;
             line-height: 1.5;
-            resize: none; /* Evitar que el usuario pueda redimensionar */
-            flex-grow: 1; /* Permite que el textarea ocupe el espacio restante */
+            resize: none; 
+            flex-grow: 1; 
         }
 
         /* Estilo para el botón de Copiar */
         #copyBtn {
-            background-color: #17a2b8; /* Color info */
+            background-color: #17a2b8; 
             color: white;
             padding: 10px 15px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
-            height: 44px; /* Para alinear con el textarea */
+            height: 44px; 
             transition: background-color 0.3s;
         }
 
@@ -167,7 +188,10 @@
                   required></textarea>
     </div>
 
-    <button id="generarBtn" onclick="codificarUrl()">Generar URL de Embed</button>
+    <div class="main-buttons">
+        <button id="generarBtn" onclick="codificarUrl()">Generar URL de Embed</button>
+        <button id="limpiarBtn" onclick="limpiarFormulario()">Limpiar Formularios</button>
+    </div>
 
     <div class="form-group">
         <label>URL de Embed Generada</label>
@@ -250,7 +274,6 @@
         const copyMessage = document.getElementById('copyMessage');
         
         if (resultadoTextarea.value) {
-            // Usar la API del portapapeles moderna (async)
             navigator.clipboard.writeText(resultadoTextarea.value)
                 .then(() => {
                     copyMessage.textContent = '¡URL copiada al portapapeles!';
@@ -258,12 +281,12 @@
                     setTimeout(() => {
                         copyMessage.textContent = '';
                         copyMessage.classList.remove('success');
-                    }, 3000); // El mensaje desaparece después de 3 segundos
+                    }, 3000); 
                 })
                 .catch(err => {
-                    // Fallback para navegadores antiguos o si falla la API
+                    // Método de reserva
                     resultadoTextarea.select();
-                    resultadoTextarea.setSelectionRange(0, 99999); // Para móviles
+                    resultadoTextarea.setSelectionRange(0, 99999); 
                     document.execCommand('copy');
                     
                     copyMessage.textContent = '¡URL copiada (método de reserva)!';
@@ -276,6 +299,20 @@
                     console.error('Error al copiar:', err);
                 });
         }
+    }
+
+    /**
+     * Limpia los campos de URL Original y URL de Embed Generada.
+     */
+    function limpiarFormulario() {
+        document.getElementById('urlOriginal').value = '';
+        document.getElementById('resultadoUrl').value = '';
+        document.getElementById('copyMessage').textContent = '';
+        document.getElementById('copyMessage').classList.remove('success');
+        document.getElementById('copyBtn').disabled = true;
+        
+        // Opcional: enfocar el cursor de nuevo en la URL original
+        document.getElementById('urlOriginal').focus();
     }
 </script>
 
