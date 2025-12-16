@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codificador Base64 de URLs para Embeds</title>
+    <style>
+        /* --- Estilos CSS --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Estilo para los botones principales (Generar) */
+        #generarBtn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.1s;
+            width: 100%;
+            display: block;
+            margin-bottom: 25px;
+        }
+
+        #generarBtn:hover {
+            background-color: #218838;
+        }
+        
+        #generarBtn:active {
+            transform: translateY(1px);
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px; /* Espacio entre el campo de texto y el botón */
+            align-items: flex-end; /* Alinear el botón en la parte inferior */
+        }
+
+        #resultadoUrl {
+            background-color: #e9ecef;
+            border: 1px dashed #ced4da;
+            min-height: 50px;
+            word-break: break-all;
+            border-radius: 6px;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: none; /* Evitar que el usuario pueda redimensionar */
+            flex-grow: 1; /* Permite que el textarea ocupe el espacio restante */
+        }
+
+        /* Estilo para el botón de Copiar */
+        #copyBtn {
+            background-color: #17a2b8; /* Color info */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            height: 44px; /* Para alinear con el textarea */
+            transition: background-color 0.3s;
+        }
+
+        #copyBtn:hover {
+            background-color: #138496;
+        }
+        
+        #copyBtn:disabled {
+            background-color: #90d3e0;
+            cursor: not-allowed;
+        }
+
+        .note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 10px;
+            margin-top: 25px;
+            border-radius: 4px;
+            color: #856404;
+        }
+        
+        .message {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔗 Codificador de URLs para Embeds (Base64 + Dominio Base)</h1>
+
+    <div class="form-group">
+        <label for="dominioBase">Dominio Base (El de tu Script/Plantilla)</label>
+        <input type="text" id="dominioBase" value="https://script-jma-adb-plantillas-jma.blogspot.com/?r="
+               placeholder="Ej: https://tudominio.com/?r=">
+        <div class="note">
+            Este es el dominio que precede al Base64. **Debe terminar con el signo `=?` o similar** para la concatenación.
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="urlOriginal">URL a Codificar (La URL del reproductor/embed real)</label>
+        <textarea id="urlOriginal" rows="5"
+                  placeholder="Pega aquí la URL completa que quieres incrustar (Ej: https://playerbetaats.blogspot.com/p/ore-player.html?movieName=...&videoUrl=...)"
+                  required></textarea>
+    </div>
+
+    <button id="generarBtn" onclick="codificarUrl()">Generar URL de Embed</button>
+
+    <div class="form-group">
+        <label>URL de Embed Generada</label>
+        <div class="result-actions">
+            <textarea id="resultadoUrl" rows="4" readonly placeholder="Aquí aparecerá la URL completa después de codificar..."></textarea>
+            <button id="copyBtn" onclick="copiarResultado()" disabled>Copiar URL</button>
+        </div>
+        <div id="copyMessage" class="message"></div>
+    </div>
+</div>
+
+<script>
+    /* --- Lógica JavaScript --- */
+
+    /**
+     * Codifica una cadena de texto a Base64 URL Safe.
+     * @param {string} str La cadena a codificar.
+     * @returns {string} La cadena codificada en Base64 URL Safe.
+     */
+    function base64UrlEncode(str) {
+        // Codificar a Base64 estándar
+        let base64 = btoa(str);
+        // Hacer Base64 "URL Safe":
+        // 1. Reemplazar '+' por '-'
+        // 2. Reemplazar '/' por '_'
+        // 3. Eliminar padding '='
+        return base64.replace(/\+/g, '-')
+                     .replace(/\//g, '_')
+                     .replace(/=/g, '');
+    }
+
+    /**
+     * Función principal para codificar la URL y generar el enlace de embed.
+     */
+    function codificarUrl() {
+        const dominioBase = document.getElementById('dominioBase').value.trim();
+        const urlOriginal = document.getElementById('urlOriginal').value.trim();
+        const resultadoTextarea = document.getElementById('resultadoUrl');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyMessage = document.getElementById('copyMessage');
+
+        // Limpiar mensajes y deshabilitar copiar
+        copyMessage.textContent = '';
+        copyMessage.classList.remove('success');
+        copyBtn.disabled = true;
+        resultadoTextarea.value = '';
+
+        // Validaciones
+        if (!dominioBase) {
+            alert("Por favor, ingresa el Dominio Base.");
+            return;
+        }
+        if (!urlOriginal) {
+            alert("Por favor, ingresa la URL a Codificar.");
+            return;
+        }
+
+        try {
+            // 1. Codificar la URL original a Base64 (URL Safe)
+            const urlCodificadaBase64 = base64UrlEncode(urlOriginal);
+
+            // 2. Construir la URL final concatenando el dominio base y el Base64
+            const urlFinal = dominioBase + urlCodificadaBase64;
+
+            // Mostrar resultado y habilitar copiar
+            resultadoTextarea.value = urlFinal;
+            copyBtn.disabled = false;
+        } catch (error) {
+            console.error("Error al codificar:", error);
+            alert("Ocurrió un error al codificar la URL. Verifica que la URL original sea válida.");
+            resultadoTextarea.value = "ERROR: " + error.message;
+        }
+    }
+    
+    /**
+     * Copia el contenido del área de resultado al portapapeles.
+     */
+    function copiarResultado() {
+        const resultadoTextarea = document.getElementById('resultadoUrl');
+        const copyMessage = document.getElementById('copyMessage');
+        
+        if (resultadoTextarea.value) {
+            // Usar la API del portapapeles moderna (async)
+            navigator.clipboard.writeText(resultadoTextarea.value)
+                .then(() => {
+                    copyMessage.textContent = '¡URL copiada al portapapeles!';
+                    copyMessage.classList.add('success');
+                    setTimeout(() => {
+                        copyMessage.textContent = '';
+                        copyMessage.classList.remove('success');
+                    }, 3000); // El mensaje desaparece después de 3 segundos
+                })
+                .catch(err => {
+                    // Fallback para navegadores antiguos o si falla la API
+                    resultadoTextarea.select();
+                    resultadoTextarea.setSelectionRange(0, 99999); // Para móviles
+                    document.execCommand('copy');
+                    
+                    copyMessage.textContent = '¡URL copiada (método de reserva)!';
+                    copyMessage.classList.add('success');
+                    setTimeout(() => {
+                        copyMessage.textContent = '';
+                        copyMessage.classList.remove('success');
+                    }, 3000);
+                    
+                    console.error('Error al copiar:', err);
+                });
+        }
+    }
+</script>
+
+</body>
+</html>
